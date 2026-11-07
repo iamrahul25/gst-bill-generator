@@ -1,5 +1,8 @@
+import "./globals.css";
+
 export const metadata = {
-  title: "Hello World",
+  title: "GST Bill Generator",
+  description: "Create and print GST and non-GST invoices",
 };
 
 export default function RootLayout({ children }) {

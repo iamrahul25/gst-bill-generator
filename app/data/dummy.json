@@ -1,0 +1,192 @@
+{
+  "businesses": [
+    {
+      "name": "Sharma Traders",
+      "address": "12, MG Road, Near City Mall",
+      "city": "Bengaluru",
+      "state": "29",
+      "pincode": "560001",
+      "gstin": "29ABCDE1234F1Z5",
+      "phone": "98450 12345",
+      "email": "sales@sharmatraders.in",
+      "accountName": "Sharma Traders",
+      "bankName": "HDFC Bank",
+      "accountNumber": "50200012345678",
+      "ifsc": "HDFC0001234",
+      "branch": "MG Road",
+      "upiId": "sharmatraders@okhdfcbank",
+      "items": [
+        { "description": "A4 Paper Ream (500 sheets)", "hsn": "4802", "qty": "10", "rate": "245.50", "discount": "5", "gstRate": "12" },
+        { "description": "Ball Pen Box (50 pcs)", "hsn": "9608", "qty": "4", "rate": "350", "discount": "", "gstRate": "18" },
+        { "description": "Office File Folder", "hsn": "4820", "qty": "25", "rate": "42", "discount": "", "gstRate": "18" }
+      ]
+    },
+    {
+      "name": "Patel Electronics",
+      "address": "Shop 7, Relief Road, Opp. Lucky Hotel",
+      "city": "Ahmedabad",
+      "state": "24",
+      "pincode": "380001",
+      "gstin": "24AAKFP5678K1Z3",
+      "phone": "79 2550 4411",
+      "email": "billing@patelelectronics.co.in",
+      "accountName": "Patel Electronics",
+      "bankName": "State Bank of India",
+      "accountNumber": "38123456789",
+      "ifsc": "SBIN0000425",
+      "branch": "Relief Road",
+      "upiId": "patelelectronics@sbi",
+      "items": [
+        { "description": "LED Bulb 9W (Pack of 10)", "hsn": "8539", "qty": "6", "rate": "799", "discount": "", "gstRate": "18" },
+        { "description": "Ceiling Fan 1200mm", "hsn": "8414", "qty": "2", "rate": "2450", "discount": "10", "gstRate": "18" },
+        { "description": "Extension Board 4 Socket", "hsn": "8536", "qty": "5", "rate": "380", "discount": "", "gstRate": "18" }
+      ]
+    },
+    {
+      "name": "Sri Lakshmi Textiles",
+      "address": "45, Oppanakara Street",
+      "city": "Coimbatore",
+      "state": "33",
+      "pincode": "641001",
+      "gstin": "33ADFPL4321M1ZQ",
+      "phone": "94430 56789",
+      "email": "orders@srilakshmitex.com",
+      "accountName": "Sri Lakshmi Textiles",
+      "bankName": "Indian Bank",
+      "accountNumber": "6543210987",
+      "ifsc": "IDIB000C032",
+      "branch": "Town Hall",
+      "upiId": "srilakshmitex@indianbk",
+      "items": [
+        { "description": "Cotton Saree - Kanchi Border", "hsn": "5208", "qty": "12", "rate": "950", "discount": "", "gstRate": "5" },
+        { "description": "Men's Cotton Shirt", "hsn": "6205", "qty": "20", "rate": "649", "discount": "8", "gstRate": "5" },
+        { "description": "Bed Sheet Double (with 2 pillow covers)", "hsn": "6302", "qty": "8", "rate": "1199", "discount": "", "gstRate": "5" }
+      ]
+    },
+    {
+      "name": "Pixel Craft Studio",
+      "address": "Office 302, Kalpataru Square, Baner",
+      "city": "Pune",
+      "state": "27",
+      "pincode": "411045",
+      "gstin": "27AAJCP9876R1Z8",
+      "phone": "020 6720 3344",
+      "email": "hello@pixelcraft.studio",
+      "accountName": "Pixel Craft Studio Pvt Ltd",
+      "bankName": "ICICI Bank",
+      "accountNumber": "123405006789",
+      "ifsc": "ICIC0001234",
+      "branch": "Baner",
+      "upiId": "pixelcraft@icici",
+      "items": [
+        { "description": "Logo & Brand Identity Design", "hsn": "998391", "qty": "1", "rate": "25000", "discount": "", "gstRate": "18" },
+        { "description": "Website Design (5 pages)", "hsn": "998314", "qty": "1", "rate": "45000", "discount": "10", "gstRate": "18" },
+        { "description": "Social Media Creatives (per post)", "hsn": "998361", "qty": "15", "rate": "800", "discount": "", "gstRate": "18" }
+      ]
+    },
+    {
+      "name": "Gupta Hardware & Paints",
+      "address": "B-14, Johari Bazar",
+      "city": "Jaipur",
+      "state": "08",
+      "pincode": "302003",
+      "gstin": "08ABMPG2468H1Z1",
+      "phone": "98290 33221",
+      "email": "guptahardware.jpr@gmail.com",
+      "accountName": "Gupta Hardware and Paints",
+      "bankName": "Punjab National Bank",
+      "accountNumber": "0412000100234567",
+      "ifsc": "PUNB0041200",
+      "branch": "Johari Bazar",
+      "upiId": "guptahardware@pnb",
+      "items": [
+        { "description": "Exterior Emulsion Paint 20L", "hsn": "3209", "qty": "3", "rate": "6850", "discount": "5", "gstRate": "18" },
+        { "description": "Cement Bag 50kg (OPC 53)", "hsn": "2523", "qty": "40", "rate": "395", "discount": "", "gstRate": "18" },
+        { "description": "PVC Pipe 1 inch (10 ft)", "hsn": "3917", "qty": "25", "rate": "210", "discount": "", "gstRate": "18" }
+      ]
+    },
+    {
+      "name": "Kerala Spice House",
+      "address": "Building 23/1180, Mattancherry",
+      "city": "Kochi",
+      "state": "32",
+      "pincode": "682002",
+      "gstin": "32AAGFK1357S1ZW",
+      "phone": "0484 222 9087",
+      "email": "trade@keralaspicehouse.in",
+      "accountName": "Kerala Spice House",
+      "bankName": "Federal Bank",
+      "accountNumber": "11220100345678",
+      "ifsc": "FDRL0001122",
+      "branch": "Mattancherry",
+      "upiId": "keralaspice@federal",
+      "items": [
+        { "description": "Black Pepper (1 kg)", "hsn": "0904", "qty": "15", "rate": "720", "discount": "", "gstRate": "5" },
+        { "description": "Green Cardamom 8mm (500 g)", "hsn": "0908", "qty": "10", "rate": "1450", "discount": "3", "gstRate": "5" },
+        { "description": "Cinnamon Sticks (250 g)", "hsn": "0906", "qty": "20", "rate": "180", "discount": "", "gstRate": "5" }
+      ]
+    }
+  ],
+  "customers": [
+    {
+      "name": "Acme Solutions Pvt Ltd",
+      "address": "4th Floor, Tech Park, Hebbal",
+      "city": "Mysuru",
+      "state": "29",
+      "pincode": "570001",
+      "gstin": "29AAACA1234B1Z2",
+      "phone": "0821 241 5566",
+      "email": "accounts@acmesolutions.in"
+    },
+    {
+      "name": "Rajdhani Retail LLP",
+      "address": "56, Connaught Place, Block E",
+      "city": "New Delhi",
+      "state": "07",
+      "pincode": "110001",
+      "gstin": "07AAMFR4455C1ZK",
+      "phone": "011 4150 7788",
+      "email": "purchase@rajdhaniretail.com"
+    },
+    {
+      "name": "Hyderabad Foods Pvt Ltd",
+      "address": "Plot 21, Phase II, IDA Cherlapally",
+      "city": "Hyderabad",
+      "state": "36",
+      "pincode": "500051",
+      "gstin": "36AABCH7788D1Z9",
+      "phone": "040 2726 1100",
+      "email": "procurement@hydfoods.co.in"
+    },
+    {
+      "name": "Mehta & Sons",
+      "address": "Shop 3, Crawford Market, Lokmanya Tilak Marg",
+      "city": "Mumbai",
+      "state": "27",
+      "pincode": "400001",
+      "gstin": "27AAEFM3322E1Z4",
+      "phone": "98200 44556",
+      "email": "mehtaandsons@yahoo.co.in"
+    },
+    {
+      "name": "Bluewave Hotels & Resorts",
+      "address": "Dona Paula Beach Road",
+      "city": "Panaji",
+      "state": "30",
+      "pincode": "403004",
+      "gstin": "30AADCB6611F1Z7",
+      "phone": "0832 245 3030",
+      "email": "finance@bluewavehotels.com"
+    },
+    {
+      "name": "Anita Verma",
+      "address": "B-702, Shalimar Gallant, Mahanagar",
+      "city": "Lucknow",
+      "state": "09",
+      "pincode": "226006",
+      "gstin": "",
+      "phone": "99350 12890",
+      "email": "anita.verma@gmail.com"
+    }
+  ]
+}
