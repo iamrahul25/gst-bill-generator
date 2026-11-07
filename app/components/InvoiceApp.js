@@ -335,6 +335,7 @@ export default function InvoiceApp() {
   const [qr, setQr] = useState("");
   const [preview, setPreview] = useState(false);
   const [printLayout, setPrintLayout] = useState(null);
+  const [install, setInstall] = useState(null);
   const sheetRef = useRef(null);
   const savedSnapshot = useRef("");
   const dummySnapshot = useRef("");
@@ -407,6 +408,28 @@ export default function InvoiceApp() {
   }, [upiLink]);
 
   useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" }).catch(() => {});
+    }
+    const standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+    if (standalone) return;
+    const ua = navigator.userAgent;
+    const ios = /iPad|iPhone|iPod/.test(ua) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(ua));
+    if (ios) setInstall({ ios: true });
+    const onPrompt = (e) => {
+      e.preventDefault();
+      setInstall({ prompt: e });
+    };
+    const onInstalled = () => setInstall(null);
+    window.addEventListener("beforeinstallprompt", onPrompt);
+    window.addEventListener("appinstalled", onInstalled);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", onPrompt);
+      window.removeEventListener("appinstalled", onInstalled);
+    };
+  }, []);
+
+  useEffect(() => {
     const onKey = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
         e.preventDefault();
@@ -459,7 +482,7 @@ export default function InvoiceApp() {
   const totalQty = filledItems.reduce((s, it) => s + num(it.qty), 0);
   const units = [...new Set(filledItems.map((it) => it.unit.trim()).filter(Boolean))];
   const qtyUnit = units.length === 1 ? units[0] : "";
-  const termLines = inv.terms
+  const termLines = b.terms
     .split("\n")
     .map((t) => t.trim())
     .filter(Boolean);
@@ -587,13 +610,24 @@ export default function InvoiceApp() {
     setTimeout(() => window.print(), 100);
   };
 
+  const handleInstall = async () => {
+    if (install.ios) {
+      notify('To install: tap the Share button, then "Add to Home Screen".');
+      return;
+    }
+    install.prompt.prompt();
+    const { outcome } = await install.prompt.userChoice;
+    setInstall(null);
+    if (outcome === "accepted") notify("Installing GST Bill Generator as an app…");
+  };
+
   const fillDummyData = () => {
     if (currentJson !== dummySnapshot.current && !confirmDiscard()) return;
-    const { items, discount, shipping, ...business } = pickOther(dummy.businesses, b.name);
+    const { items, discount, shipping, terms, ...business } = pickOther(dummy.businesses, b.name);
     const client = pickOther(dummy.customers, c.name);
     const next = {
       ...inv,
-      business: { ...emptyBusiness(), ...business, pan: panFromGstin(business.gstin) },
+      business: { ...emptyBusiness(), ...business, pan: panFromGstin(business.gstin), terms: terms.join("\n") },
       client: { ...emptyClient(), ...client },
       items: items.map((it) => ({ ...emptyItem(), ...it })),
       discount,
@@ -606,7 +640,7 @@ export default function InvoiceApp() {
 
   const handleNew = () => {
     if (!confirmDiscard()) return;
-    const next = { ...newInvoice({ business: b, lastNumber, gstEnabled: gst }), terms: inv.terms };
+    const next = newInvoice({ business: b, lastNumber, gstEnabled: gst });
     savedSnapshot.current = JSON.stringify(next);
     setInv(next);
   };
@@ -671,10 +705,14 @@ export default function InvoiceApp() {
 
   const itemRow = (it, i) => {
     const l = calc.lines[i];
-    const rowClass = [isBlankItem(it) && "blank-row", printLayout?.breaks.includes(i) && "page-start"]
+    const fill = printLayout?.fills[i];
+    const rowClass = [
+      isBlankItem(it) && "blank-row",
+      printLayout?.breaks.includes(i) && "page-start",
+      printLayout && i in printLayout.fills && !(fill > 0) && "page-end",
+    ]
       .filter(Boolean)
       .join(" ");
-    const fill = printLayout?.fills[i];
     return (
       <Fragment key={it.id}>
         <tr data-row={i} className={rowClass}>
@@ -777,6 +815,11 @@ export default function InvoiceApp() {
         </div>
         <div className="spacer" />
         <span className={`status ${status[1]}`}>{status[0]}</span>
+        {install ? (
+          <button type="button" onClick={handleInstall} title="Install this as an app on your computer or phone">
+            Install App
+          </button>
+        ) : null}
         <button type="button" onClick={fillDummyData} title="Fill a random sample business, customer and items">
           Dummy Data
         </button>
@@ -1069,149 +1112,151 @@ export default function InvoiceApp() {
                   </button>
 
                   <section className="box summary-box">
-                    <div className="words-cell">
-                      <div className="strong">Total Invoice Amount in Words</div>
-                      <div>{amountInWords(calc.total)}</div>
-                    </div>
-                    <table className="totals">
-                      <tbody>
-                        <tr>
-                          <th>Sub Total</th>
-                          <td className="num">{money(calc.gross)}</td>
-                        </tr>
-                        <tr className={calc.discount > 0 ? "" : "screen-only"}>
-                          <th>Discount</th>
-                          <td className="num">
-                            <Input
-                              numeric
-                              value={inv.discount}
-                              onChange={(v) => update({ discount: v })}
-                              placeholder="0.00"
+                    <div className="summary-left">
+                      <div className="words-cell">
+                        <div className="strong">Total Invoice Amount in Words</div>
+                        <div>{amountInWords(calc.total)}</div>
+                      </div>
+                      <div className={`bank ${hasBank ? "" : "screen-only"}`}>
+                        <div className="label">Payment Details</div>
+                        <div className="bank-edit screen-only">
+                          {BANK_FIELDS.map(([key, label]) => (
+                            <label key={key}>
+                              <span>{label}</span>
+                              <Input
+                                value={b[key]}
+                                onChange={(v) => setBiz(key, key === "ifsc" ? v.toUpperCase() : v)}
+                                placeholder={key === "upiId" ? "yourname@upi" : label}
+                              />
+                            </label>
+                          ))}
+                          <div className="hint">Saved with your business profile.</div>
+                        </div>
+                        <div className="bank-body">
+                          <table className="bank-print print-only">
+                            <tbody>
+                              {BANK_FIELDS.filter(([k]) => b[k]?.trim()).map(([key, label]) => (
+                                <tr key={key}>
+                                  <th>{label}</th>
+                                  <td>{b[key]}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                          {qr && inv.showQr ? (
+                            <div className="qr">
+                              <img src={qr} alt="UPI payment QR code" />
+                              <div>Scan to pay with any UPI app</div>
+                            </div>
+                          ) : null}
+                        </div>
+                        {upiId ? (
+                          <label className="check screen-only">
+                            <input
+                              type="checkbox"
+                              checked={inv.showQr}
+                              onChange={(e) => update({ showQr: e.target.checked })}
                             />
-                            <span className="print-only">(-) {money(calc.discount)}</span>
-                          </td>
-                        </tr>
-                        <tr className={calc.shipping > 0 ? "" : "screen-only"}>
-                          <th>Shipping Charges</th>
-                          <td className="num">
-                            <Input
-                              numeric
-                              value={inv.shipping}
-                              onChange={(v) => update({ shipping: v })}
-                              placeholder="0.00"
-                            />
-                            <span className="print-only">{money(calc.shipping)}</span>
-                          </td>
-                        </tr>
-                        {calc.discount > 0 || calc.shipping > 0 ? (
-                          <tr>
-                            <th>{gst ? "Taxable Value" : "Net Amount"}</th>
-                            <td className="num">{money(calc.taxable)}</td>
-                          </tr>
+                            Show UPI QR code for ₹ {money(calc.total)}
+                          </label>
                         ) : null}
-                        {calc.taxGroups.map((g) =>
-                          calc.inter ? (
-                            <tr key={g.rate}>
-                              <th>Output IGST {g.rate} %</th>
-                              <td className="num">{money(g.igst)}</td>
-                            </tr>
-                          ) : (
-                            <TaxPair key={g.rate} group={g} />
-                          )
-                        )}
-                        {calc.roundOff !== 0 ? (
+                      </div>
+                    </div>
+                    <div className="summary-right">
+                      <table className="totals">
+                        <tbody>
                           <tr>
-                            <th>Round Off</th>
+                            <th>Sub Total</th>
+                            <td className="num">{money(calc.gross)}</td>
+                          </tr>
+                          <tr className={calc.discount > 0 ? "" : "screen-only"}>
+                            <th>Discount</th>
                             <td className="num">
-                              {calc.roundOff > 0 ? "(+)" : "(-)"} {money(Math.abs(calc.roundOff))}
+                              <Input
+                                numeric
+                                value={inv.discount}
+                                onChange={(v) => update({ discount: v })}
+                                placeholder="0.00"
+                              />
+                              <span className="print-only">(-) {money(calc.discount)}</span>
                             </td>
                           </tr>
-                        ) : null}
-                        <tr className="grand">
-                          <th>Total</th>
-                          <td className="num">₹ {money(calc.total)}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </section>
-
-                  <section className="box sign-box">
-                    <div className={`bank ${hasBank ? "" : "screen-only"}`}>
-                      <div className="label">Payment Details</div>
-                      <div className="bank-edit screen-only">
-                        {BANK_FIELDS.map(([key, label]) => (
-                          <label key={key}>
-                            <span>{label}</span>
-                            <Input
-                              value={b[key]}
-                              onChange={(v) => setBiz(key, key === "ifsc" ? v.toUpperCase() : v)}
-                              placeholder={key === "upiId" ? "yourname@upi" : label}
-                            />
-                          </label>
-                        ))}
-                        <div className="hint">Saved with your business profile.</div>
-                      </div>
-                      <div className="bank-body">
-                        <table className="bank-print print-only">
-                          <tbody>
-                            {BANK_FIELDS.filter(([k]) => b[k]?.trim()).map(([key, label]) => (
-                              <tr key={key}>
-                                <th>{label}</th>
-                                <td>{b[key]}</td>
+                          <tr className={calc.shipping > 0 ? "" : "screen-only"}>
+                            <th>Shipping Charges</th>
+                            <td className="num">
+                              <Input
+                                numeric
+                                value={inv.shipping}
+                                onChange={(v) => update({ shipping: v })}
+                                placeholder="0.00"
+                              />
+                              <span className="print-only">{money(calc.shipping)}</span>
+                            </td>
+                          </tr>
+                          {calc.discount > 0 || calc.shipping > 0 ? (
+                            <tr>
+                              <th>{gst ? "Taxable Value" : "Net Amount"}</th>
+                              <td className="num">{money(calc.taxable)}</td>
+                            </tr>
+                          ) : null}
+                          {calc.taxGroups.map((g) =>
+                            calc.inter ? (
+                              <tr key={g.rate}>
+                                <th>Output IGST {g.rate} %</th>
+                                <td className="num">{money(g.igst)}</td>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                        {qr && inv.showQr ? (
-                          <div className="qr">
-                            <img src={qr} alt="UPI payment QR code" />
-                            <div>Scan to pay with any UPI app</div>
-                          </div>
-                        ) : null}
-                      </div>
-                      {upiId ? (
-                        <label className="check screen-only">
-                          <input
-                            type="checkbox"
-                            checked={inv.showQr}
-                            onChange={(e) => update({ showQr: e.target.checked })}
+                            ) : (
+                              <TaxPair key={g.rate} group={g} />
+                            )
+                          )}
+                          {calc.roundOff !== 0 ? (
+                            <tr>
+                              <th>Round Off</th>
+                              <td className="num">
+                                {calc.roundOff > 0 ? "(+)" : "(-)"} {money(Math.abs(calc.roundOff))}
+                              </td>
+                            </tr>
+                          ) : null}
+                          <tr className="grand">
+                            <th>Total</th>
+                            <td className="num">₹ {money(calc.total)}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <div className="sign">
+                        <div className="strong">For {b.name || "Your Business"}</div>
+                        <div className="sign-images">
+                          <ImageUpload
+                            value={b.stamp}
+                            onChange={(v) => setBiz("stamp", v)}
+                            label="Upload Stamp"
+                            className="stamp"
+                            maxW={360}
+                            maxH={360}
                           />
-                          Show UPI QR code for ₹ {money(calc.total)}
-                        </label>
-                      ) : null}
-                    </div>
-                    <div className="sign">
-                      <div className="strong">For {b.name || "Your Business"}</div>
-                      <div className="sign-images">
-                        <ImageUpload
-                          value={b.stamp}
-                          onChange={(v) => setBiz("stamp", v)}
-                          label="Upload Stamp"
-                          className="stamp"
-                          maxW={360}
-                          maxH={360}
-                        />
-                        <ImageUpload
-                          value={b.signature}
-                          onChange={(v) => setBiz("signature", v)}
-                          label="Upload Signature"
-                          className="signature"
-                          maxW={600}
-                          maxH={240}
-                        />
+                          <ImageUpload
+                            value={b.signature}
+                            onChange={(v) => setBiz("signature", v)}
+                            label="Upload Signature"
+                            className="signature"
+                            maxW={600}
+                            maxH={240}
+                          />
+                        </div>
+                        <div className="sign-line">Authorised Signatory</div>
                       </div>
-                      <div className="sign-line">Authorised Signatory</div>
                     </div>
                   </section>
 
                   <section className={`box terms-box ${termLines.length ? "" : "screen-only"}`}>
                     <div className="box-title">Terms &amp; Conditions</div>
                     <AutoTextarea
-                      value={inv.terms}
-                      onChange={(v) => update({ terms: v })}
+                      value={b.terms}
+                      onChange={(v) => setBiz("terms", v)}
                       placeholder="One term per line"
                       minRows={3}
                     />
+                    <div className="hint screen-only">Saved with your business profile.</div>
                     <ol className="print-only">
                       {termLines.map((t, i) => (
                         <li key={i}>{t}</li>

@@ -113,6 +113,7 @@ export const emptyBusiness = () => ({
   upiId: "",
   signature: "",
   stamp: "",
+  terms: DEFAULT_TERMS,
 });
 
 export const emptyClient = () => ({
@@ -161,15 +162,15 @@ export const newInvoice = ({ business, lastNumber, gstEnabled = true } = {}) => 
   items: [emptyItem()],
   discount: "",
   shipping: "",
-  terms: DEFAULT_TERMS,
   showQr: true,
 });
 
 // Invoices saved before the current layout had per-item discount %, notes and
 // PO / due date / e-way bill / place-of-supply fields. Their item discounts are
 // folded into the invoice-level discount amount; the other fields are dropped.
+// Terms used to live on the invoice and now belong to the business.
 export function normalizeInvoice(inv) {
-  const { notes, dueDate, poNumber, poDate, paymentTerms, ewayBill, otherRef, placeOfSupply, ...rest } = inv;
+  const { notes, dueDate, poNumber, poDate, paymentTerms, ewayBill, otherRef, placeOfSupply, terms, ...rest } = inv;
   const items = inv.items?.length ? inv.items : [emptyItem()];
   const legacyDiscount = round2(
     items.reduce((s, it) => s + (num(it.qty) * num(it.rate) * num(it.discount)) / 100, 0)
@@ -177,7 +178,7 @@ export function normalizeInvoice(inv) {
   return {
     ...newInvoice(),
     ...rest,
-    business: { ...emptyBusiness(), ...inv.business },
+    business: { ...emptyBusiness(), ...(terms !== undefined && { terms }), ...inv.business },
     client: { ...emptyClient(), ...inv.client },
     items: items.map(({ discount, ...it }) => ({ ...emptyItem(), ...it })),
     discount: inv.discount ?? (legacyDiscount ? String(legacyDiscount) : ""),

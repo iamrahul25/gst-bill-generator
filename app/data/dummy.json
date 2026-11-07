@@ -16,6 +16,12 @@
       "ifsc": "HDFC0001234",
       "branch": "MG Road",
       "upiId": "sharmatraders@okhdfcbank",
+      "terms": [
+        "Goods once sold will not be taken back or exchanged.",
+        "Payment due within 15 days of invoice date. Interest @ 18% p.a. will be charged on overdue bills.",
+        "Please check quantity and condition at the time of delivery. Shortages reported later will not be entertained.",
+        "Subject to Bengaluru jurisdiction only."
+      ],
       "discount": "250",
       "shipping": "",
       "items": [
@@ -40,6 +46,12 @@
       "ifsc": "SBIN0000425",
       "branch": "Relief Road",
       "upiId": "patelelectronics@sbi",
+      "terms": [
+        "All products carry only the manufacturer's warranty. Claims are to be made at the brand's authorised service centre.",
+        "Physical damage, burn marks and damage due to voltage fluctuation are not covered under warranty.",
+        "Goods once sold will not be taken back.",
+        "Subject to Ahmedabad jurisdiction only."
+      ],
       "discount": "490",
       "shipping": "350",
       "items": [
@@ -64,6 +76,12 @@
       "ifsc": "IDIB000C032",
       "branch": "Town Hall",
       "upiId": "srilakshmitex@indianbk",
+      "terms": [
+        "Handloom products may have slight variations in colour and weave; these are not defects.",
+        "Dry clean recommended for sarees. Colour may bleed on first wash.",
+        "Exchange within 7 days with original tag and bill. No cash refund.",
+        "Subject to Coimbatore jurisdiction only."
+      ],
       "discount": "1000",
       "shipping": "600",
       "items": [
@@ -88,6 +106,12 @@
       "ifsc": "ICIC0001234",
       "branch": "Baner",
       "upiId": "pixelcraft@icici",
+      "terms": [
+        "50% advance payment; balance due on delivery of final files.",
+        "Two rounds of revisions are included. Further changes will be billed at ₹ 1,500 per hour.",
+        "Source files and copyright transfer to the client only after full payment.",
+        "Subject to Pune jurisdiction only."
+      ],
       "discount": "4500",
       "shipping": "",
       "items": [
@@ -112,6 +136,12 @@
       "ifsc": "KKBK0004605",
       "branch": "Nehru Place",
       "upiId": "kryptronix@kotak",
+      "terms": [
+        "Goods once sold will not be taken back or exchanged.",
+        "All products carry only the warranty provided by the manufacturer of the product.",
+        "Warranty is void if seals are broken or the product is physically damaged.",
+        "Subject to Delhi jurisdiction only."
+      ],
       "discount": "4349.15",
       "shipping": "1906.78",
       "items": [
@@ -142,6 +172,12 @@
       "ifsc": "FDRL0001122",
       "branch": "Mattancherry",
       "upiId": "keralaspice@federal",
+      "terms": [
+        "Prices are ex-warehouse Kochi. Transit risk is borne by the buyer.",
+        "Store in a cool, dry place away from sunlight. Best before 12 months from date of packing.",
+        "Quality complaints must be raised within 3 days of receipt, along with samples.",
+        "Subject to Ernakulam jurisdiction only."
+      ],
       "discount": "",
       "shipping": "450",
       "items": [
@@ -166,6 +202,13 @@
       "ifsc": "BARB0LAMING",
       "branch": "Lamington Road",
       "upiId": "technova@barodampay",
+      "terms": [
+        "Goods once sold will not be taken back or exchanged.",
+        "Warranty as per manufacturer terms. Repairs and replacements are handled through brand service centres.",
+        "Software licences are non-refundable once activated.",
+        "Cheque payments are subject to realisation. Interest @ 24% p.a. on bills unpaid after 30 days.",
+        "Subject to Mumbai jurisdiction only."
+      ],
       "discount": "2500",
       "shipping": "750",
       "items": [
