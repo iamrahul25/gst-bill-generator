@@ -81,7 +81,13 @@ button {
   flex: 1;
 }
 
-.toolbar > button,
+.toolbar-actions,
+.toolbar-main {
+  display: contents;
+}
+
+.toolbar-actions > button,
+.toolbar-main > button,
 .preview-bar > button,
 .profile-bar button,
 .history .actions button,
@@ -91,16 +97,18 @@ button {
   color: var(--ink);
   padding: 6px 14px;
   border-radius: 6px;
+  touch-action: manipulation;
 }
 
-.toolbar > button:hover,
+.toolbar-actions > button:hover,
+.toolbar-main > button:hover,
 .preview-bar > button:hover,
 .profile-bar button:hover,
 .history .actions button:hover {
   background: #f3f4f6;
 }
 
-.toolbar > button.primary,
+.toolbar-main > button.primary,
 .preview-bar > button.primary {
   background: var(--accent);
   border-color: var(--accent);
@@ -109,9 +117,15 @@ button {
   padding: 6px 22px;
 }
 
-.toolbar > button.primary:hover,
+.toolbar-main > button.primary:hover,
 .preview-bar > button.primary:hover {
   background: #1d4ed8;
+}
+
+button:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* ---------- Preview ---------- */
@@ -143,6 +157,7 @@ button {
 @media screen {
   .app.previewing {
     min-height: 100vh;
+    min-height: 100dvh;
     background: #eef0f3;
   }
 
@@ -161,6 +176,7 @@ button {
     padding: 10mm;
     border: 1px solid var(--line);
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    zoom: var(--preview-zoom, 1);
   }
 }
 
@@ -211,7 +227,8 @@ button {
 }
 
 .paper {
-  width: 980px;
+  width: 100%;
+  max-width: 980px;
   margin: 0 auto;
   background: #fff;
   border: 1px solid var(--line);
@@ -1077,6 +1094,604 @@ button {
 
 .toast.error {
   background: var(--danger);
+}
+
+/* ---------- Responsive ---------- */
+
+/* `.responsive` is dropped in print preview and while measuring print pages,
+   so these rules never change the A4 layout. */
+
+@media (hover: none) {
+  .image-upload.has-image .image-actions {
+    display: flex;
+  }
+}
+
+@media screen and (max-width: 1020px) {
+  .responsive .paper {
+    padding: 20px;
+  }
+}
+
+@media screen and (max-width: 900px) {
+  .responsive .toolbar {
+    padding: 10px 12px;
+  }
+
+  .responsive .top-details {
+    grid-template-columns: 1fr;
+  }
+
+  .responsive .summary-box {
+    margin-right: 0;
+  }
+
+  /* One card per line item */
+  .responsive .items,
+  .responsive .items > tbody {
+    display: block;
+  }
+
+  .responsive .items > thead {
+    display: none;
+  }
+
+  .responsive .items tr[data-row] {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 12px;
+    padding: 10px 12px 12px;
+    margin-bottom: 10px;
+    border: 1px solid var(--grid);
+    border-radius: 10px;
+    background: #fff;
+  }
+
+  .responsive .items td,
+  .responsive .items td.c-serial,
+  .responsive .items td.c-hsn,
+  .responsive .items td.c-gst,
+  .responsive .items td.c-qty,
+  .responsive .items td.num {
+    display: block;
+    width: auto;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    text-align: left;
+  }
+
+  .responsive .items td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  .responsive .items td .field,
+  .responsive .items td.num .field,
+  .responsive .items td.c-gst .field {
+    text-align: left;
+    text-align-last: auto;
+  }
+
+  .responsive .items td.c-sn {
+    grid-column: 1 / -1;
+    padding: 6px 44px 0 0;
+    font-weight: 700;
+    color: var(--brand);
+  }
+
+  .responsive .items td.c-sn::before {
+    content: "Item ";
+  }
+
+  .responsive .items td.c-desc,
+  .responsive .items td.c-serial {
+    grid-column: 1 / -1;
+  }
+
+  .responsive .items td.c-amt {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 10px;
+    border-top: 1px dashed var(--grid);
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .responsive .items td.c-amt::before {
+    margin: 0;
+    font-size: 13px;
+  }
+
+  .responsive .items td.c-del {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+  }
+
+  .responsive .items td.c-del .icon-btn {
+    width: 44px;
+    height: 44px;
+    font-size: 24px;
+  }
+
+  .responsive .items .items-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    border: 1px solid var(--grid);
+    border-radius: 10px;
+    background: var(--band);
+  }
+
+  .responsive .items .items-total td {
+    display: block;
+    padding: 0;
+    border: 0;
+  }
+
+  .responsive .items .items-total td:empty {
+    display: none;
+  }
+
+  .responsive .add-line {
+    width: 100%;
+    min-height: 44px;
+    margin: 0 0 14px;
+    border: 1px dashed var(--accent);
+    border-radius: 10px;
+    background: var(--accent-soft);
+  }
+}
+
+@media screen and (max-width: 640px) {
+  html,
+  body {
+    font-size: 15px;
+  }
+
+  /* Toolbar: title + status, bill type, secondary actions; Save / Preview /
+     Print move to a bar pinned to the bottom of the screen. */
+  .responsive .toolbar {
+    position: static;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .responsive .toolbar .brand {
+    flex: 1;
+    margin-right: 0;
+  }
+
+  .responsive .toolbar .spacer {
+    display: none;
+  }
+
+  .responsive .toolbar .seg {
+    order: 2;
+    flex-basis: 100%;
+  }
+
+  .responsive .seg button {
+    flex: 1;
+    min-height: 44px;
+  }
+
+  .responsive .toolbar-actions {
+    order: 3;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    flex-basis: 100%;
+  }
+
+  .responsive .toolbar-actions > button {
+    flex: 1 1 auto;
+    min-height: 44px;
+    padding: 6px 10px;
+  }
+
+  .responsive .toolbar-main {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.3fr;
+    gap: 8px;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    background: #fff;
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.08);
+  }
+
+  .responsive .toolbar-main > button {
+    min-height: 46px;
+    padding: 6px 10px;
+  }
+
+  .responsive .paper-wrap {
+    padding: 12px 8px calc(96px + env(safe-area-inset-bottom));
+  }
+
+  .responsive .toast {
+    bottom: calc(84px + env(safe-area-inset-bottom));
+  }
+
+  .responsive .paper {
+    padding: 12px;
+    border-radius: 8px;
+  }
+
+  /* Fields: visible boxes and 16px text (avoids iOS zoom-on-focus) */
+  .responsive .paper .field {
+    min-height: 44px;
+    padding: 9px 10px;
+    font-size: 16px;
+    border-color: var(--line);
+    background: var(--field);
+  }
+
+  .responsive .paper .field:focus {
+    border-color: var(--accent);
+    background: #fff;
+  }
+
+  .responsive .paper .field.biz-title {
+    font-size: 22px;
+  }
+
+  .responsive .paper .field.inv-no {
+    font-size: 18px;
+  }
+
+  .responsive .paper .copy-label .field {
+    min-height: 36px;
+    padding: 2px 4px;
+    font-size: 16px;
+    border-color: transparent;
+    background: transparent;
+  }
+
+  .responsive .paper .qty-unit {
+    gap: 6px;
+  }
+
+  .responsive .paper .qty-unit .field {
+    padding: 9px 6px;
+  }
+
+  .responsive .static-value {
+    padding: 11px 10px;
+  }
+
+  .responsive .hint {
+    font-size: 12px;
+  }
+
+  /* Labels sit above their field */
+  .responsive .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .responsive .detail-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    padding-top: 10px;
+  }
+
+  .responsive .detail-label,
+  .responsive .meta-box .detail-label,
+  .responsive .meta-box .detail-row:first-child .detail-label {
+    flex-basis: auto;
+    padding-top: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  .responsive .detail-colon {
+    display: none;
+  }
+
+  .responsive .meta-box .detail-row {
+    padding: 10px 0 0;
+  }
+
+  .responsive .receiver,
+  .responsive .meta-box {
+    padding: 4px 12px 12px;
+  }
+
+  .responsive .receiver > .profile-bar {
+    margin: -4px -12px 4px;
+  }
+
+  .responsive .profile-bar {
+    flex-wrap: wrap;
+    padding: 8px;
+  }
+
+  .responsive .profile-bar select {
+    flex-basis: 100%;
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .responsive .profile-bar button {
+    flex: 1;
+    min-height: 40px;
+    font-size: 14px;
+  }
+
+  /* Header */
+  .responsive .inv-head-bar {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 0 12px 12px;
+  }
+
+  .responsive .doc-tab {
+    order: -1;
+    justify-self: center;
+    padding: 2px 22px 5px;
+    font-size: 16px;
+  }
+
+  .responsive .head-gstin,
+  .responsive .head-phone {
+    justify-content: flex-start;
+    gap: 8px;
+    font-size: 14px;
+    white-space: normal;
+  }
+
+  .responsive .head-gstin:empty {
+    display: none;
+  }
+
+  .responsive .head-gstin .field,
+  .responsive .head-phone .field {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+  }
+
+  .responsive .head-hint {
+    padding: 2px 12px 8px;
+  }
+
+  .responsive .inv-head-body {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .responsive .inv-head .image-upload.logo {
+    align-self: center;
+  }
+
+  .responsive .inv-head .image-upload.logo.has-image {
+    padding-right: 0;
+    border-right: 0;
+  }
+
+  .responsive .inv-head .image-upload.logo img {
+    max-width: 100%;
+    max-height: 90px;
+  }
+
+  .responsive .inv-head .image-placeholder {
+    width: 160px;
+    height: 80px;
+  }
+
+  .responsive .inv-head-main {
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  /* Summary, payment and signature stack */
+  .responsive .summary-box {
+    grid-template-columns: 1fr;
+  }
+
+  .responsive .summary-right {
+    border-left: 0;
+    border-top: 1px solid var(--grid);
+  }
+
+  .responsive .words-cell {
+    padding: 10px 12px 0;
+  }
+
+  .responsive .bank {
+    padding: 10px 12px 12px;
+  }
+
+  .responsive .bank-edit {
+    max-width: none;
+    gap: 8px;
+  }
+
+  .responsive .bank-edit label {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .responsive .bank-edit .field {
+    color: var(--ink);
+  }
+
+  .responsive .bank-body {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .responsive .check {
+    min-height: 44px;
+    margin-top: 4px;
+    font-size: 14px;
+  }
+
+  .responsive .check input {
+    width: 20px;
+    height: 20px;
+  }
+
+  .responsive .totals th,
+  .responsive .totals td {
+    padding: 6px 10px;
+  }
+
+  .responsive .totals td {
+    width: 46%;
+  }
+
+  .responsive .totals .field {
+    text-align: right;
+  }
+
+  .responsive .sign-images {
+    flex-wrap: wrap;
+  }
+
+  .responsive .terms-box .field {
+    min-height: 88px;
+  }
+
+  /* History becomes a full-screen sheet with one card per invoice */
+  .responsive .modal-backdrop {
+    align-items: stretch;
+    padding: 0;
+  }
+
+  .responsive .modal {
+    width: 100%;
+    max-height: none;
+    height: 100vh;
+    height: 100dvh;
+    border-radius: 0;
+  }
+
+  .responsive .modal-head {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .responsive .modal-head h2 {
+    flex: 1;
+  }
+
+  .responsive .modal-head .search {
+    order: 3;
+    flex-basis: 100%;
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .responsive .modal-head .icon-btn {
+    width: 44px;
+    height: 44px;
+    font-size: 26px;
+  }
+
+  .responsive .history,
+  .responsive .history tbody {
+    display: block;
+  }
+
+  .responsive .history thead {
+    display: none;
+  }
+
+  .responsive .history tr {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 4px 12px;
+    padding: 12px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .responsive .history td {
+    display: block;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .responsive .history .h-number {
+    grid-area: 1 / 1;
+    font-weight: 700;
+  }
+
+  .responsive .history .h-amount {
+    grid-area: 1 / 2;
+    font-weight: 700;
+  }
+
+  .responsive .history .h-client {
+    grid-area: 2 / 1;
+  }
+
+  .responsive .history .h-type {
+    grid-area: 2 / 2;
+    text-align: right;
+    color: var(--muted);
+  }
+
+  .responsive .history .h-date {
+    grid-area: 3 / 1 / 4 / 3;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .responsive .history .actions {
+    grid-area: 4 / 1 / 5 / 3;
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+  }
+
+  .responsive .history .actions button {
+    flex: 1;
+    min-height: 40px;
+    margin: 0;
+    font-size: 14px;
+  }
+
+  /* Print preview controls */
+  .previewing .preview-bar {
+    flex-wrap: wrap;
+    padding: 10px 12px;
+  }
+
+  .previewing .preview-note {
+    flex-basis: 100%;
+    font-size: 13px;
+  }
+
+  .previewing .preview-bar .spacer {
+    display: none;
+  }
+
+  .previewing .preview-bar > button {
+    flex: 1;
+    min-height: 44px;
+  }
 }
 
 /* ---------- Print ---------- */

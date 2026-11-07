@@ -88,6 +88,9 @@ function measurePages(sheet) {
   const style = document.createElement("style");
   style.textContent = printRulesCss();
   document.head.appendChild(style);
+  const app = sheet.closest(".app");
+  const responsive = app?.classList.contains("responsive");
+  if (responsive) app.classList.remove("responsive");
   const zoom = 1 / (window.devicePixelRatio || 1);
   sheet.style.width = "190mm";
   sheet.style.zoom = String(zoom);
@@ -126,6 +129,7 @@ function measurePages(sheet) {
     return { breaks, fills };
   } finally {
     style.remove();
+    if (responsive) app.classList.add("responsive");
     sheet.style.width = "";
     sheet.style.zoom = "";
   }
@@ -297,11 +301,11 @@ function HistoryModal({ invoices, currentId, onOpen, onDuplicate, onDelete, onCl
               <tbody>
                 {rows.map((r) => (
                   <tr key={r.id} className={r.id === currentId ? "current" : ""}>
-                    <td>{r.number}</td>
-                    <td>{formatDate(r.date)}</td>
-                    <td>{r.clientName || "—"}</td>
-                    <td>{r.gstEnabled ? "GST" : "Non-GST"}</td>
-                    <td className="num">₹ {money(r.total)}</td>
+                    <td className="h-number">{r.number}</td>
+                    <td className="h-date">{formatDate(r.date)}</td>
+                    <td className="h-client">{r.clientName || "—"}</td>
+                    <td className="h-type">{r.gstEnabled ? "GST" : "Non-GST"}</td>
+                    <td className="num h-amount">₹ {money(r.total)}</td>
                     <td className="actions">
                       <button type="button" onClick={() => onOpen(r)}>
                         Open
@@ -462,11 +466,20 @@ export default function InvoiceApp() {
     style.textContent = printRulesCss();
     document.head.appendChild(style);
     window.scrollTo(0, 0);
+    const root = document.documentElement;
+    const fit = () => {
+      const a4 = (210 * 96) / 25.4;
+      root.style.setProperty("--preview-zoom", String(Math.min(1, (root.clientWidth - 24) / a4)));
+    };
+    fit();
     const onKey = (e) => e.key === "Escape" && setPreview(false);
     window.addEventListener("keydown", onKey);
+    window.addEventListener("resize", fit);
     return () => {
       style.remove();
+      root.style.removeProperty("--preview-zoom");
       window.removeEventListener("keydown", onKey);
+      window.removeEventListener("resize", fit);
     };
   }, [preview]);
 
@@ -717,17 +730,17 @@ export default function InvoiceApp() {
       <Fragment key={it.id}>
         <tr data-row={i} className={rowClass}>
           <td className="c-sn">{i + 1}</td>
-          <td className="c-desc">
+          <td className="c-desc" data-label="Product Name">
             <TextArea
               value={it.description}
               onChange={(v) => setItem(it.id, "description", v)}
               placeholder="Product name / description"
             />
           </td>
-          <td className="c-serial">
+          <td className="c-serial" data-label="Product Serial No.">
             <TextArea value={it.serial} onChange={(v) => setItem(it.id, "serial", v)} placeholder="Serial no." />
           </td>
-          <td className="c-qty">
+          <td className="c-qty" data-label="Qty / Unit">
             <div className="qty-unit screen-only">
               <Input numeric value={it.qty} onChange={(v) => setItem(it.id, "qty", v)} placeholder="0" />
               <Input value={it.unit} onChange={(v) => setItem(it.id, "unit", v)} placeholder="Unit" />
@@ -737,12 +750,12 @@ export default function InvoiceApp() {
             </span>
           </td>
           {gst ? (
-            <td className="c-hsn">
+            <td className="c-hsn" data-label="HSN/SAC">
               <Field value={it.hsn} onChange={(v) => setItem(it.id, "hsn", v)} placeholder="HSN" />
             </td>
           ) : null}
           {gst ? (
-            <td className="c-gst">
+            <td className="c-gst" data-label="GST">
               <select
                 className="field select screen-only"
                 value={it.gstRate}
@@ -757,7 +770,7 @@ export default function InvoiceApp() {
               <span className="print-only">{l.rate} %</span>
             </td>
           ) : null}
-          <td className="c-rate num">
+          <td className="c-rate num" data-label="Unit Price">
             <Field
               numeric
               value={it.rate}
@@ -766,9 +779,17 @@ export default function InvoiceApp() {
               placeholder="0.00"
             />
           </td>
-          <td className="c-amt num">{money(l.taxable)}</td>
+          <td className="c-amt num" data-label={gst ? "Total Taxable Value" : "Amount"}>
+            {money(l.taxable)}
+          </td>
           <td className="c-del screen-only">
-            <button type="button" className="icon-btn" onClick={() => removeItem(it.id)} title="Remove item">
+            <button
+              type="button"
+              className="icon-btn"
+              onClick={() => removeItem(it.id)}
+              title="Remove item"
+              aria-label={`Remove item ${i + 1}`}
+            >
               ×
             </button>
           </td>
@@ -790,7 +811,7 @@ export default function InvoiceApp() {
   };
 
   return (
-    <div className={`app ${preview ? "previewing" : ""}`}>
+    <div className={`app ${preview ? "previewing" : "responsive"}`}>
       {preview ? (
         <div className="preview-bar">
           <span className="preview-note">Print preview (press Esc to go back)</span>
@@ -815,29 +836,33 @@ export default function InvoiceApp() {
         </div>
         <div className="spacer" />
         <span className={`status ${status[1]}`}>{status[0]}</span>
-        {install ? (
-          <button type="button" onClick={handleInstall} title="Install this as an app on your computer or phone">
-            Install App
+        <div className="toolbar-actions">
+          {install ? (
+            <button type="button" onClick={handleInstall} title="Install this as an app on your computer or phone">
+              Install App
+            </button>
+          ) : null}
+          <button type="button" onClick={fillDummyData} title="Fill a random sample business, customer and items">
+            Dummy Data
           </button>
-        ) : null}
-        <button type="button" onClick={fillDummyData} title="Fill a random sample business, customer and items">
-          Dummy Data
-        </button>
-        <button type="button" onClick={handleNew}>
-          New
-        </button>
-        <button type="button" onClick={() => setHistoryOpen(true)}>
-          History ({invoices.length})
-        </button>
-        <button type="button" onClick={handleSave} title="Ctrl+S">
-          Save
-        </button>
-        <button type="button" onClick={() => setPreview(true)} title="See how the invoice will print">
-          Preview
-        </button>
-        <button type="button" className="primary" onClick={handlePrint}>
-          Print
-        </button>
+          <button type="button" onClick={handleNew}>
+            New
+          </button>
+          <button type="button" onClick={() => setHistoryOpen(true)}>
+            History ({invoices.length})
+          </button>
+        </div>
+        <div className="toolbar-main">
+          <button type="button" onClick={handleSave} title="Ctrl+S">
+            Save
+          </button>
+          <button type="button" onClick={() => setPreview(true)} title="See how the invoice will print">
+            Preview
+          </button>
+          <button type="button" className="primary" onClick={handlePrint}>
+            Print
+          </button>
+        </div>
       </header>
 
       <main className="paper-wrap">
@@ -1289,7 +1314,11 @@ export default function InvoiceApp() {
         />
       ) : null}
 
-      {toast ? <div className={`toast screen-only ${toast.type}`}>{toast.msg}</div> : null}
+      {toast ? (
+        <div className={`toast screen-only ${toast.type}`} role="status" aria-live="polite">
+          {toast.msg}
+        </div>
+      ) : null}
     </div>
   );
 }
