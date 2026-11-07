@@ -48,6 +48,15 @@ export const GST_RATES = [0, 0.25, 3, 5, 12, 18, 28, 40];
 const GSTIN_RE = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 export const isValidGstin = (v) => GSTIN_RE.test(v);
 export const stateFromGstin = (v) => (v && STATE_NAMES[v.slice(0, 2)] ? v.slice(0, 2) : "");
+export const panFromGstin = (v) => (v && v.length >= 12 ? v.slice(2, 12) : "");
+
+export const COPY_LABELS = ["ORIGINAL", "DUPLICATE", "TRIPLICATE"];
+
+export const DEFAULT_TERMS = [
+  "Goods once sold will not be taken back or exchanged.",
+  "All products carry only the warranty provided by the manufacturer of the product.",
+  "Subject to local jurisdiction only.",
+].join("\n");
 
 export const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 
@@ -67,6 +76,12 @@ export const formatDate = (iso) => {
   });
 };
 
+export const formatTime = (hhmm) => {
+  const [h, m] = (hhmm || "").split(":").map(Number);
+  if (!Number.isFinite(h) || !Number.isFinite(m)) return "";
+  return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
+};
+
 export const num = (v) => {
   const n = parseFloat(v);
   return Number.isFinite(n) ? n : 0;
@@ -80,11 +95,13 @@ export const money = (n) => moneyFmt.format(n || 0);
 export const emptyBusiness = () => ({
   id: "",
   name: "",
+  tagline: "",
   address: "",
   city: "",
   state: "",
   pincode: "",
   gstin: "",
+  pan: "",
   phone: "",
   email: "",
   logo: "",
@@ -113,10 +130,11 @@ export const emptyClient = () => ({
 export const emptyItem = () => ({
   id: uid(),
   description: "",
+  serial: "",
   hsn: "",
   qty: "1",
+  unit: "Nos",
   rate: "",
-  discount: "",
   gstRate: "18",
 });
 
@@ -132,86 +150,91 @@ export const newInvoice = ({ business, lastNumber, gstEnabled = true } = {}) => 
   id: uid(),
   gstEnabled,
   number: nextInvoiceNumber(lastNumber),
+  copyLabel: COPY_LABELS[0],
   date: todayISO(),
-  dueDate: "",
-  placeOfSupply: "",
-  business: business ? { ...business } : emptyBusiness(),
+  vehicleNo: "",
+  transportMode: "",
+  time: "",
+  challanNo: "",
+  business: business ? { ...emptyBusiness(), ...business } : emptyBusiness(),
   client: emptyClient(),
   items: [emptyItem()],
-  notes: "Thank you for your business.",
+  discount: "",
+  shipping: "",
+  terms: DEFAULT_TERMS,
   showQr: true,
 });
 
-export const placeOfSupplyOf = (inv) => inv.placeOfSupply || inv.client.state;
+// Invoices saved before the current layout had per-item discount %, notes and
+// PO / due date / e-way bill / place-of-supply fields. Their item discounts are
+// folded into the invoice-level discount amount; the other fields are dropped.
+export function normalizeInvoice(inv) {
+  const { notes, dueDate, poNumber, poDate, paymentTerms, ewayBill, otherRef, placeOfSupply, ...rest } = inv;
+  const items = inv.items?.length ? inv.items : [emptyItem()];
+  const legacyDiscount = round2(
+    items.reduce((s, it) => s + (num(it.qty) * num(it.rate) * num(it.discount)) / 100, 0)
+  );
+  return {
+    ...newInvoice(),
+    ...rest,
+    business: { ...emptyBusiness(), ...inv.business },
+    client: { ...emptyClient(), ...inv.client },
+    items: items.map(({ discount, ...it }) => ({ ...emptyItem(), ...it })),
+    discount: inv.discount ?? (legacyDiscount ? String(legacyDiscount) : ""),
+  };
+}
 
 export const isInterState = (inv) => {
-  const pos = placeOfSupplyOf(inv);
+  const pos = inv.client.state;
   return Boolean(inv.gstEnabled && inv.business.state && pos && inv.business.state !== pos);
 };
 
+// Discount and shipping apply to the whole invoice; they are spread across
+// GST rates in proportion to each rate's share of the sub total.
 export function calcInvoice(inv) {
   const inter = isInterState(inv);
   const groups = new Map();
   let gross = 0;
-  let discount = 0;
-  let taxable = 0;
-  let tax = 0;
 
   const lines = inv.items.map((it) => {
-    const lineGross = round2(num(it.qty) * num(it.rate));
-    const lineDiscount = round2((lineGross * num(it.discount)) / 100);
-    const lineTaxable = round2(lineGross - lineDiscount);
+    const taxable = round2(num(it.qty) * num(it.rate));
     const rate = inv.gstEnabled ? num(it.gstRate) : 0;
-    const lineTax = round2((lineTaxable * rate) / 100);
-    const half = round2(lineTax / 2);
-    const line = {
-      gross: lineGross,
-      discount: lineDiscount,
-      taxable: lineTaxable,
-      rate,
-      tax: lineTax,
-      cgst: inter ? 0 : half,
-      sgst: inter ? 0 : round2(lineTax - half),
-      igst: inter ? lineTax : 0,
-    };
-
-    gross += lineGross;
-    discount += lineDiscount;
-    taxable += lineTaxable;
-    tax += lineTax;
-    if (inv.gstEnabled && lineTaxable) {
-      const g = groups.get(rate) || { rate, taxable: 0, tax: 0, cgst: 0, sgst: 0, igst: 0 };
-      g.taxable += lineTaxable;
-      g.tax += lineTax;
-      g.cgst += line.cgst;
-      g.sgst += line.sgst;
-      g.igst += line.igst;
-      groups.set(rate, g);
-    }
-    return line;
+    gross += taxable;
+    if (taxable) groups.set(rate, (groups.get(rate) || 0) + taxable);
+    return { taxable, rate };
   });
 
+  gross = round2(gross);
+  const discount = round2(num(inv.discount));
+  const shipping = round2(num(inv.shipping));
+  const taxable = round2(Math.max(0, gross - discount + shipping));
+  const factor = gross ? taxable / gross : 0;
+
+  const taxGroups = inv.gstEnabled
+    ? [...groups]
+        .filter(([rate]) => rate > 0)
+        .sort((a, b) => a[0] - b[0])
+        .map(([rate, base]) => {
+          const groupTaxable = round2(base * factor);
+          const tax = round2((groupTaxable * rate) / 100);
+          const cgst = round2(tax / 2);
+          return { rate, taxable: groupTaxable, tax, cgst, sgst: round2(tax - cgst), igst: tax };
+        })
+    : [];
+
+  const tax = round2(taxGroups.reduce((s, g) => s + g.tax, 0));
   const exact = round2(taxable + tax);
   const total = Math.round(exact);
 
   return {
     inter,
     lines,
-    gross: round2(gross),
-    discount: round2(discount),
-    taxable: round2(taxable),
-    tax: round2(tax),
-    taxGroups: [...groups.values()]
-      .filter((g) => g.rate > 0)
-      .sort((a, b) => a.rate - b.rate)
-      .map((g) => ({
-        rate: g.rate,
-        taxable: round2(g.taxable),
-        tax: round2(g.tax),
-        cgst: round2(g.cgst),
-        sgst: round2(g.sgst),
-        igst: round2(g.igst),
-      })),
+    gross,
+    discount,
+    shipping,
+    taxable,
+    tax,
+    taxGroups,
     roundOff: round2(total - exact),
     total,
   };
@@ -253,7 +276,7 @@ function integerToWords(n) {
 export function amountInWords(amount) {
   const rupees = Math.floor(Math.abs(amount));
   const paise = Math.round((Math.abs(amount) - rupees) * 100);
-  let words = `Indian Rupee ${integerToWords(rupees)}`;
+  let words = `INR ${integerToWords(rupees)}`;
   if (paise) words += ` and ${twoDigits(paise)} Paise`;
   return `${words} Only`;
 }

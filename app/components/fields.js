@@ -1,7 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef } from "react";
-import { STATES } from "../lib/invoice";
+import { STATES, formatDate, formatTime } from "../lib/invoice";
 
 export function Input({ value, onChange, className = "", numeric, ...rest }) {
   return (
@@ -55,6 +55,30 @@ export function TextArea({ printClassName = "", ...props }) {
     <>
       <AutoTextarea {...props} />
       {props.value ? <div className={`print-only pre ${printClassName}`}>{props.value}</div> : null}
+    </>
+  );
+}
+
+export function DateField({ value, onChange, min }) {
+  return (
+    <>
+      <input
+        type="date"
+        className="field screen-only"
+        value={value || ""}
+        min={min}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      {value ? <span className="print-only">{formatDate(value)}</span> : null}
+    </>
+  );
+}
+
+export function TimeField({ value, onChange }) {
+  return (
+    <>
+      <input type="time" className="field screen-only" value={value || ""} onChange={(e) => onChange(e.target.value)} />
+      {value ? <span className="print-only">{formatTime(value)}</span> : null}
     </>
   );
 }

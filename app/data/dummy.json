@@ -2,6 +2,7 @@
   "businesses": [
     {
       "name": "Sharma Traders",
+      "tagline": "Wholesale Stationery & Office Supplies",
       "address": "12, MG Road, Near City Mall",
       "city": "Bengaluru",
       "state": "29",
@@ -15,14 +16,17 @@
       "ifsc": "HDFC0001234",
       "branch": "MG Road",
       "upiId": "sharmatraders@okhdfcbank",
+      "discount": "250",
+      "shipping": "",
       "items": [
-        { "description": "A4 Paper Ream (500 sheets)", "hsn": "4802", "qty": "10", "rate": "245.50", "discount": "5", "gstRate": "12" },
-        { "description": "Ball Pen Box (50 pcs)", "hsn": "9608", "qty": "4", "rate": "350", "discount": "", "gstRate": "18" },
-        { "description": "Office File Folder", "hsn": "4820", "qty": "25", "rate": "42", "discount": "", "gstRate": "18" }
+        { "description": "A4 Paper Ream (500 sheets)", "serial": "", "hsn": "4802", "qty": "10", "unit": "Ream", "rate": "245.50", "gstRate": "12" },
+        { "description": "Ball Pen Box (50 pcs)", "serial": "", "hsn": "9608", "qty": "4", "unit": "Box", "rate": "350", "gstRate": "18" },
+        { "description": "Office File Folder", "serial": "", "hsn": "4820", "qty": "25", "unit": "Nos", "rate": "42", "gstRate": "18" }
       ]
     },
     {
       "name": "Patel Electronics",
+      "tagline": "Authorised Dealer - Lighting & Appliances",
       "address": "Shop 7, Relief Road, Opp. Lucky Hotel",
       "city": "Ahmedabad",
       "state": "24",
@@ -36,14 +40,17 @@
       "ifsc": "SBIN0000425",
       "branch": "Relief Road",
       "upiId": "patelelectronics@sbi",
+      "discount": "490",
+      "shipping": "350",
       "items": [
-        { "description": "LED Bulb 9W (Pack of 10)", "hsn": "8539", "qty": "6", "rate": "799", "discount": "", "gstRate": "18" },
-        { "description": "Ceiling Fan 1200mm", "hsn": "8414", "qty": "2", "rate": "2450", "discount": "10", "gstRate": "18" },
-        { "description": "Extension Board 4 Socket", "hsn": "8536", "qty": "5", "rate": "380", "discount": "", "gstRate": "18" }
+        { "description": "LED Bulb 9W (Pack of 10)", "serial": "", "hsn": "8539", "qty": "6", "unit": "Pack", "rate": "799", "gstRate": "18" },
+        { "description": "Ceiling Fan 1200mm\nBrown, 3 blades", "serial": "CF12A0091\nCF12A0092", "hsn": "8414", "qty": "2", "unit": "Nos", "rate": "2450", "gstRate": "18" },
+        { "description": "Extension Board 4 Socket", "serial": "", "hsn": "8536", "qty": "5", "unit": "Nos", "rate": "380", "gstRate": "18" }
       ]
     },
     {
       "name": "Sri Lakshmi Textiles",
+      "tagline": "Handloom & Cotton Garments",
       "address": "45, Oppanakara Street",
       "city": "Coimbatore",
       "state": "33",
@@ -57,14 +64,17 @@
       "ifsc": "IDIB000C032",
       "branch": "Town Hall",
       "upiId": "srilakshmitex@indianbk",
+      "discount": "1000",
+      "shipping": "600",
       "items": [
-        { "description": "Cotton Saree - Kanchi Border", "hsn": "5208", "qty": "12", "rate": "950", "discount": "", "gstRate": "5" },
-        { "description": "Men's Cotton Shirt", "hsn": "6205", "qty": "20", "rate": "649", "discount": "8", "gstRate": "5" },
-        { "description": "Bed Sheet Double (with 2 pillow covers)", "hsn": "6302", "qty": "8", "rate": "1199", "discount": "", "gstRate": "5" }
+        { "description": "Cotton Saree - Kanchi Border", "serial": "", "hsn": "5208", "qty": "12", "unit": "Pcs", "rate": "950", "gstRate": "5" },
+        { "description": "Men's Cotton Shirt", "serial": "", "hsn": "6205", "qty": "20", "unit": "Pcs", "rate": "649", "gstRate": "5" },
+        { "description": "Bed Sheet Double (with 2 pillow covers)", "serial": "", "hsn": "6302", "qty": "8", "unit": "Set", "rate": "1199", "gstRate": "5" }
       ]
     },
     {
       "name": "Pixel Craft Studio",
+      "tagline": "Branding | Web | Social Media",
       "address": "Office 302, Kalpataru Square, Baner",
       "city": "Pune",
       "state": "27",
@@ -78,35 +88,47 @@
       "ifsc": "ICIC0001234",
       "branch": "Baner",
       "upiId": "pixelcraft@icici",
+      "discount": "4500",
+      "shipping": "",
       "items": [
-        { "description": "Logo & Brand Identity Design", "hsn": "998391", "qty": "1", "rate": "25000", "discount": "", "gstRate": "18" },
-        { "description": "Website Design (5 pages)", "hsn": "998314", "qty": "1", "rate": "45000", "discount": "10", "gstRate": "18" },
-        { "description": "Social Media Creatives (per post)", "hsn": "998361", "qty": "15", "rate": "800", "discount": "", "gstRate": "18" }
+        { "description": "Logo & Brand Identity Design", "serial": "", "hsn": "998391", "qty": "1", "unit": "Job", "rate": "25000", "gstRate": "18" },
+        { "description": "Website Design (5 pages)", "serial": "", "hsn": "998314", "qty": "1", "unit": "Job", "rate": "45000", "gstRate": "18" },
+        { "description": "Social Media Creatives (per post)", "serial": "", "hsn": "998361", "qty": "15", "unit": "Nos", "rate": "800", "gstRate": "18" }
       ]
     },
     {
-      "name": "Gupta Hardware & Paints",
-      "address": "B-14, Johari Bazar",
-      "city": "Jaipur",
-      "state": "08",
-      "pincode": "302003",
-      "gstin": "08ABMPG2468H1Z1",
-      "phone": "98290 33221",
-      "email": "guptahardware.jpr@gmail.com",
-      "accountName": "Gupta Hardware and Paints",
-      "bankName": "Punjab National Bank",
-      "accountNumber": "0412000100234567",
-      "ifsc": "PUNB0041200",
-      "branch": "Johari Bazar",
-      "upiId": "guptahardware@pnb",
+      "name": "Kryptronix Technologies",
+      "tagline": "(Formerly Kryptronix Gaming Technologies & E Sports)",
+      "address": "203, 2nd Floor, Deenar Bhawan - 44, Nehru Place",
+      "city": "South Delhi",
+      "state": "07",
+      "pincode": "110019",
+      "gstin": "07BLNPV9229D1ZK",
+      "phone": "",
+      "email": "support@kryptronix.in",
+      "accountName": "Kryptronix Technologies",
+      "bankName": "Kotak Mahindra Bank",
+      "accountNumber": "9912345678",
+      "ifsc": "KKBK0004605",
+      "branch": "Nehru Place",
+      "upiId": "kryptronix@kotak",
+      "discount": "4349.15",
+      "shipping": "1906.78",
       "items": [
-        { "description": "Exterior Emulsion Paint 20L", "hsn": "3209", "qty": "3", "rate": "6850", "discount": "5", "gstRate": "18" },
-        { "description": "Cement Bag 50kg (OPC 53)", "hsn": "2523", "qty": "40", "rate": "395", "discount": "", "gstRate": "18" },
-        { "description": "PVC Pipe 1 inch (10 ft)", "hsn": "3917", "qty": "25", "rate": "210", "discount": "", "gstRate": "18" }
+        { "description": "DEEPCOOL CABINET CG530\n4 FAN BLACK", "serial": "10000157162XA262800628", "hsn": "84733099", "qty": "1", "unit": "UNIT", "rate": "5076.27", "gstRate": "18" },
+        { "description": "AMD RYZEN 7 9700X W/O FAN", "serial": "9APU9666M60752", "hsn": "84733010", "qty": "1", "unit": "UNIT", "rate": "25415.25", "gstRate": "18" },
+        { "description": "GIGABYTE B850 GAMING X\nWIFI 6E MOTHERBOARD", "serial": "20045007148B,5820", "hsn": "84733020", "qty": "1", "unit": "UNIT", "rate": "15669.49", "gstRate": "18" },
+        { "description": "GIGABYTE RTX 5070\nWINDFORCE OC SFF 12GB GDDR7", "serial": "261741074512,0080", "hsn": "84733099", "qty": "1", "unit": "UNIT", "rate": "85584.75", "gstRate": "18" },
+        { "description": "MSI A850GL 80 PLUS GOLD\nFULLY MODULAR ATX 3.1", "serial": "3067ZP8A50CE010626000573", "hsn": "85044090", "qty": "1", "unit": "UNIT", "rate": "8466.10", "gstRate": "18" },
+        { "description": "WESTERN DIGITAL 2TB\nSN7100 BLACK NVME GEN4", "serial": "25254R802968", "hsn": "85235100", "qty": "1", "unit": "UNIT", "rate": "27110.17", "gstRate": "18" },
+        { "description": "PATRIOT VIPER ELITE\n32GB(16X2) DDR5 6000MHz CL30 WH", "serial": "212508262000455", "hsn": "84733030", "qty": "2", "unit": "UNIT", "rate": "24572.04", "gstRate": "18" },
+        { "description": "ARCTIC FREEZER 36 ARGB\nCPU AIR COOLER (BLACK)", "serial": "", "hsn": "84733099", "qty": "1", "unit": "UNIT", "rate": "3389.83", "gstRate": "18" },
+        { "description": "ANT ESPORTS GP365 PRO\nBLACK WIRELESS GAMEPAD", "serial": "", "hsn": "95045000", "qty": "1", "unit": "UNIT", "rate": "0.01", "gstRate": "18" }
       ]
     },
     {
       "name": "Kerala Spice House",
+      "tagline": "Exporters of Whole Spices",
       "address": "Building 23/1180, Mattancherry",
       "city": "Kochi",
       "state": "32",
@@ -120,14 +142,87 @@
       "ifsc": "FDRL0001122",
       "branch": "Mattancherry",
       "upiId": "keralaspice@federal",
+      "discount": "",
+      "shipping": "450",
       "items": [
-        { "description": "Black Pepper (1 kg)", "hsn": "0904", "qty": "15", "rate": "720", "discount": "", "gstRate": "5" },
-        { "description": "Green Cardamom 8mm (500 g)", "hsn": "0908", "qty": "10", "rate": "1450", "discount": "3", "gstRate": "5" },
-        { "description": "Cinnamon Sticks (250 g)", "hsn": "0906", "qty": "20", "rate": "180", "discount": "", "gstRate": "5" }
+        { "description": "Black Pepper (1 kg)", "serial": "", "hsn": "0904", "qty": "15", "unit": "Kg", "rate": "720", "gstRate": "5" },
+        { "description": "Green Cardamom 8mm (500 g)", "serial": "", "hsn": "0908", "qty": "10", "unit": "Pack", "rate": "1450", "gstRate": "5" },
+        { "description": "Cinnamon Sticks (250 g)", "serial": "", "hsn": "0906", "qty": "20", "unit": "Pack", "rate": "180", "gstRate": "5" }
+      ]
+    },
+    {
+      "name": "TechNova Computers",
+      "tagline": "Laptops, Desktops, Networking & IT Accessories",
+      "address": "Shop 14-15, Lamington Road, Grant Road (East)",
+      "city": "Mumbai",
+      "state": "27",
+      "pincode": "400007",
+      "gstin": "27AAHFT4567L1Z2",
+      "phone": "022 2386 4410",
+      "email": "billing@technova.in",
+      "accountName": "TechNova Computers",
+      "bankName": "Bank of Baroda",
+      "accountNumber": "04230200001234",
+      "ifsc": "BARB0LAMING",
+      "branch": "Lamington Road",
+      "upiId": "technova@barodampay",
+      "discount": "2500",
+      "shipping": "750",
+      "items": [
+        { "description": "DELL INSPIRON 15 3530\ni5-1335U 16GB 512GB SSD", "serial": "8XKQ2Z3\n9YLR4A1", "hsn": "84713010", "qty": "2", "unit": "UNIT", "rate": "52966.10", "gstRate": "18" },
+        { "description": "HP 15s RYZEN 5 7520U\n8GB 512GB WIN11", "serial": "5CG3341KTR", "hsn": "84713010", "qty": "1", "unit": "UNIT", "rate": "41525.42", "gstRate": "18" },
+        { "description": "LENOVO IDEACENTRE AIO 3\n23.8\" FHD i5 12TH GEN", "serial": "MP2K7Q9X", "hsn": "84714190", "qty": "1", "unit": "UNIT", "rate": "58474.58", "gstRate": "18" },
+        { "description": "LOGITECH MK270 WIRELESS COMBO", "serial": "", "hsn": "84716060", "qty": "10", "unit": "Nos", "rate": "1270.34", "gstRate": "18" },
+        { "description": "LOGITECH M331 SILENT MOUSE", "serial": "", "hsn": "84716060", "qty": "15", "unit": "Nos", "rate": "762.71", "gstRate": "18" },
+        { "description": "DELL 24\" P2423H MONITOR\nIPS FHD HDMI / DP", "serial": "CN0XK3F2\nCN0XK3F7\nCN0XK3G1", "hsn": "85285200", "qty": "3", "unit": "UNIT", "rate": "12288.14", "gstRate": "18" },
+        { "description": "LG 27\" 27MP400 IPS MONITOR", "serial": "", "hsn": "85285200", "qty": "2", "unit": "UNIT", "rate": "9737.29", "gstRate": "18" },
+        { "description": "SAMSUNG 980 1TB NVME SSD", "serial": "S64ANS0T512345", "hsn": "85235100", "qty": "1", "unit": "UNIT", "rate": "6355.93", "gstRate": "18" },
+        { "description": "CRUCIAL MX500 500GB SATA SSD", "serial": "", "hsn": "84717020", "qty": "4", "unit": "UNIT", "rate": "3389.83", "gstRate": "18" },
+        { "description": "KINGSTON 16GB DDR4 3200 SODIMM", "serial": "", "hsn": "84733030", "qty": "6", "unit": "UNIT", "rate": "3135.59", "gstRate": "18" },
+        { "description": "SEAGATE 2TB EXTERNAL HDD\nONE TOUCH USB 3.0", "serial": "", "hsn": "84717020", "qty": "3", "unit": "UNIT", "rate": "6186.44", "gstRate": "18" },
+        { "description": "SANDISK 64GB ULTRA DUAL DRIVE", "serial": "", "hsn": "85235100", "qty": "25", "unit": "Nos", "rate": "550.85", "gstRate": "18" },
+        { "description": "TP-LINK ARCHER C6 AC1200 ROUTER", "serial": "", "hsn": "85176290", "qty": "4", "unit": "UNIT", "rate": "2457.63", "gstRate": "18" },
+        { "description": "TP-LINK 8-PORT GIGABIT SWITCH\nTL-SG1008D", "serial": "", "hsn": "85176290", "qty": "5", "unit": "UNIT", "rate": "1440.68", "gstRate": "18" },
+        { "description": "D-LINK CAT6 UTP CABLE (305 m)", "serial": "", "hsn": "85444999", "qty": "2", "unit": "Box", "rate": "8050.85", "gstRate": "18" },
+        { "description": "RJ45 CONNECTORS (PACK OF 100)", "serial": "", "hsn": "85366990", "qty": "5", "unit": "Pack", "rate": "423.73", "gstRate": "18" },
+        { "description": "APC BACK-UPS 1100VA\nBX1100C-IN", "serial": "3B2241X12345\n3B2241X12351", "hsn": "85044030", "qty": "2", "unit": "UNIT", "rate": "6779.66", "gstRate": "18" },
+        { "description": "HP LASERJET PRO M126nw\nMULTIFUNCTION PRINTER", "serial": "CNB9P41234", "hsn": "84433100", "qty": "1", "unit": "UNIT", "rate": "21186.44", "gstRate": "18" },
+        { "description": "HP 88A BLACK TONER CARTRIDGE", "serial": "", "hsn": "84439959", "qty": "6", "unit": "Nos", "rate": "3940.68", "gstRate": "18" },
+        { "description": "EPSON L3250 ECOTANK PRINTER", "serial": "X8JW012345", "hsn": "84433100", "qty": "1", "unit": "UNIT", "rate": "13474.58", "gstRate": "18" },
+        { "description": "EPSON 003 INK BOTTLE SET (4 COLOURS)", "serial": "", "hsn": "32151990", "qty": "4", "unit": "Set", "rate": "1186.44", "gstRate": "18" },
+        { "description": "ZEBRONICS TRANSFORMER\nGAMING KEYBOARD & MOUSE", "serial": "", "hsn": "84716060", "qty": "3", "unit": "Set", "rate": "1101.69", "gstRate": "18" },
+        { "description": "BOAT ROCKERZ 450 HEADPHONES", "serial": "", "hsn": "85183000", "qty": "4", "unit": "Nos", "rate": "1271.19", "gstRate": "18" },
+        { "description": "LOGITECH C270 HD WEBCAM", "serial": "", "hsn": "85258020", "qty": "5", "unit": "Nos", "rate": "1694.92", "gstRate": "18" },
+        { "description": "PORTRONICS HDMI CABLE 3m", "serial": "", "hsn": "85444299", "qty": "10", "unit": "Nos", "rate": "338.98", "gstRate": "18" },
+        { "description": "USB-C TO HDMI ADAPTER 4K", "serial": "", "hsn": "85176990", "qty": "8", "unit": "Nos", "rate": "847.46", "gstRate": "18" },
+        { "description": "LAPTOP BACKPACK 15.6\"", "serial": "", "hsn": "42021290", "qty": "6", "unit": "Nos", "rate": "1016.95", "gstRate": "18" },
+        { "description": "LAPTOP COOLING PAD (2 FANS)", "serial": "", "hsn": "84145990", "qty": "4", "unit": "Nos", "rate": "847.46", "gstRate": "18" },
+        { "description": "MS OFFICE HOME & STUDENT 2021\nLIFETIME LICENCE (ESD)", "serial": "", "hsn": "85234990", "qty": "5", "unit": "Nos", "rate": "7618.64", "gstRate": "18" },
+        { "description": "QUICK HEAL TOTAL SECURITY\n1 USER 1 YEAR", "serial": "", "hsn": "85234990", "qty": "10", "unit": "Nos", "rate": "1101.69", "gstRate": "18" },
+        { "description": "WINDOWS 11 PRO OEM LICENCE", "serial": "", "hsn": "85234990", "qty": "3", "unit": "Nos", "rate": "9322.03", "gstRate": "18" },
+        { "description": "ANTEC NX800 MID TOWER CABINET", "serial": "", "hsn": "84733099", "qty": "1", "unit": "UNIT", "rate": "4237.29", "gstRate": "18" },
+        { "description": "INTEL CORE i5-14400F PROCESSOR", "serial": "U3J1234A00567", "hsn": "85423100", "qty": "1", "unit": "UNIT", "rate": "16525.42", "gstRate": "18" },
+        { "description": "MSI PRO B760M-E DDR4\nMOTHERBOARD", "serial": "601-7D48-010B2311000123", "hsn": "84733020", "qty": "1", "unit": "UNIT", "rate": "9745.76", "gstRate": "18" },
+        { "description": "CORSAIR CV650 650W PSU", "serial": "", "hsn": "85044090", "qty": "1", "unit": "UNIT", "rate": "4661.02", "gstRate": "18" },
+        { "description": "WIRELESS PRESENTER WITH LASER", "serial": "", "hsn": "84716090", "qty": "2", "unit": "Nos", "rate": "1016.95", "gstRate": "18" },
+        { "description": "SCREEN CLEANING KIT", "serial": "", "hsn": "34022090", "qty": "10", "unit": "Nos", "rate": "211.86", "gstRate": "18" },
+        { "description": "A4 COPIER PAPER 75 GSM (500 SHEETS)", "serial": "", "hsn": "48025690", "qty": "20", "unit": "Ream", "rate": "285.71", "gstRate": "12" },
+        { "description": "ON-SITE INSTALLATION & SETUP\n(PER WORKSTATION)", "serial": "", "hsn": "998713", "qty": "8", "unit": "Job", "rate": "500", "gstRate": "18" },
+        { "description": "ANNUAL MAINTENANCE CONTRACT\n12 MONTHS, 10 SYSTEMS", "serial": "", "hsn": "998713", "qty": "1", "unit": "Job", "rate": "15000", "gstRate": "18" }
       ]
     }
   ],
   "customers": [
+    {
+      "name": "Shree Shyam Plywood",
+      "address": "Gali No 2, Hasanpur Aunda Road",
+      "city": "Karnal",
+      "state": "06",
+      "pincode": "132114",
+      "gstin": "06AAGPK4840P1ZO",
+      "phone": "",
+      "email": "princebhardwaj902@gmail.com"
+    },
     {
       "name": "Acme Solutions Pvt Ltd",
       "address": "4th Floor, Tech Park, Hebbal",

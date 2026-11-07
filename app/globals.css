@@ -14,6 +14,9 @@
   --danger: #dc2626;
   --ok: #15803d;
   --warn: #b45309;
+  --brand: #1e3a8a;
+  --band: #d9e5f6;
+  --grid: #a9bbd6;
 }
 
 html,
@@ -49,6 +52,10 @@ button {
   text-align: right;
 }
 
+.strong {
+  font-weight: 700;
+}
+
 /* ---------- Toolbar ---------- */
 
 .toolbar {
@@ -75,6 +82,7 @@ button {
 }
 
 .toolbar > button,
+.preview-bar > button,
 .profile-bar button,
 .history .actions button,
 .image-actions button {
@@ -86,12 +94,14 @@ button {
 }
 
 .toolbar > button:hover,
+.preview-bar > button:hover,
 .profile-bar button:hover,
 .history .actions button:hover {
   background: #f3f4f6;
 }
 
-.toolbar > button.primary {
+.toolbar > button.primary,
+.preview-bar > button.primary {
   background: var(--accent);
   border-color: var(--accent);
   color: #fff;
@@ -99,8 +109,59 @@ button {
   padding: 6px 22px;
 }
 
-.toolbar > button.primary:hover {
+.toolbar > button.primary:hover,
+.preview-bar > button.primary:hover {
   background: #1d4ed8;
+}
+
+/* ---------- Preview ---------- */
+
+.preview-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.preview-bar .spacer {
+  flex: 1;
+}
+
+.preview-note {
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* Preview mode copies the print rules onto the screen; these restore the
+   bar and draw the sheet as an A4 page. */
+@media screen {
+  .app.previewing {
+    min-height: 100vh;
+    background: #eef0f3;
+  }
+
+  .app.previewing > .preview-bar {
+    display: flex;
+  }
+
+  .app.previewing .paper-wrap {
+    padding: 24px 12px 64px;
+  }
+
+  .app.previewing .paper {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    padding: 10mm;
+    border: 1px solid var(--line);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  }
 }
 
 .seg {
@@ -156,51 +217,28 @@ button {
   border: 1px solid var(--line);
   border-radius: 10px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-  padding: 40px 44px 28px;
+  padding: 32px 36px 28px;
 }
 
-.row {
-  display: flex;
-  gap: 32px;
-  justify-content: space-between;
+.sheet,
+.sheet > thead,
+.sheet > tbody,
+.sheet > * > tr,
+.sheet > * > tr > td {
+  display: block;
+  padding: 0;
 }
 
-.col {
-  flex: 1;
-  min-width: 0;
+.box {
+  border: 1px solid var(--grid);
 }
 
-.col.right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-}
-
-.label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-bottom: 6px;
-}
-
-.title {
-  margin: 0;
-  font-size: 34px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-}
-
-.head {
-  margin-bottom: 24px;
-}
-
-.bill {
-  padding-top: 20px;
-  border-top: 1px solid var(--line);
-  margin-bottom: 24px;
+.box-title {
+  background: var(--band);
+  border-bottom: 1px solid var(--grid);
+  text-align: center;
+  font-weight: 700;
+  padding: 6px 10px;
 }
 
 /* ---------- Inputs ---------- */
@@ -213,7 +251,7 @@ button {
   border: 1px solid transparent;
   background: transparent;
   border-radius: 4px;
-  padding: 4px 6px;
+  padding: 3px 6px;
   outline: none;
   transition: border-color 0.15s, background 0.15s;
 }
@@ -247,8 +285,7 @@ button {
 }
 
 .field.strong {
-  font-weight: 600;
-  font-size: 15px;
+  font-weight: 700;
 }
 
 .field.invalid {
@@ -265,31 +302,19 @@ button {
   color: var(--danger);
 }
 
-.party-edit {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  max-width: 380px;
-}
-
-.grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px;
-}
-
 .profile-bar {
   display: flex;
   gap: 6px;
-  margin-bottom: 8px;
-  max-width: 380px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--grid);
+  background: #fbfcfe;
 }
 
 .profile-bar select {
   flex: 1;
   min-width: 0;
   font: inherit;
-  padding: 5px 8px;
+  padding: 4px 8px;
   border: 1px dashed #c7cdd6;
   border-radius: 6px;
   background: var(--accent-soft);
@@ -298,37 +323,256 @@ button {
 }
 
 .profile-bar button {
-  padding: 4px 10px;
+  padding: 3px 10px;
   font-size: 13px;
 }
 
-/* ---------- Meta ---------- */
+/* ---------- Header ---------- */
 
-.meta {
-  border-collapse: collapse;
-  margin-top: 26px;
+.box.rounded {
+  border-radius: 10px;
 }
 
-.meta th {
-  text-align: left;
-  font-weight: 600;
-  color: var(--muted);
-  padding: 3px 14px 3px 0;
+.box.rounded > .profile-bar {
+  border-radius: 10px 10px 0 0;
+}
+
+.icon {
+  display: block;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  color: var(--brand);
+}
+
+.inv-head {
+  margin-bottom: 14px;
+}
+
+.inv-head-bar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--grid);
+}
+
+.head-gstin,
+.head-phone {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 700;
   white-space: nowrap;
 }
 
-.meta td {
-  width: 220px;
+.head-phone {
+  justify-content: flex-end;
+}
+
+.head-gstin .field {
+  width: 180px;
+  font-weight: 700;
+}
+
+.head-phone .field {
+  width: 140px;
+  font-weight: 700;
+}
+
+.head-hint {
+  padding: 2px 16px;
+}
+
+.doc-tab {
+  background: var(--band);
+  border: 1px solid var(--grid);
+  border-top: 0;
+  border-radius: 0 0 10px 10px;
+  padding: 2px 30px 5px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+}
+
+.inv-head-body {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 12px 18px 14px;
+}
+
+.inv-head .image-upload.logo.has-image {
+  padding-right: 24px;
+  border-right: 2px solid var(--ink);
+}
+
+.inv-head .image-upload.logo img {
+  max-height: 110px;
+  max-width: 200px;
+  display: block;
+}
+
+.inv-head .image-placeholder {
+  width: 150px;
+  height: 100px;
+}
+
+.inv-head-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 2px;
+}
+
+.copy-label select {
+  width: auto;
+  margin: 0 auto;
+  padding: 0 4px;
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.02em;
+  text-align: center;
+  text-align-last: center;
+}
+
+.field.biz-title {
+  text-align: center;
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--brand);
+}
+
+.field.biz-tagline {
+  text-align: center;
+  font-weight: 600;
+}
+
+.biz-address {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  font-size: 15px;
+}
+
+.biz-address .icon {
+  width: 18px;
+  height: 18px;
+}
+
+.biz-form {
+  width: 100%;
+  margin-top: 6px;
+  text-align: left;
+}
+
+.biz-extra {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ---------- Receiver + invoice details ---------- */
+
+.top-details {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 14px;
+  align-items: stretch;
+}
+
+.receiver,
+.meta-box {
+  padding: 4px 14px 10px;
+}
+
+.receiver > .profile-bar {
+  margin: -4px -14px 4px;
+}
+
+.meta-box {
+  background: #f5f8fd;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 22px;
+}
+
+.detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+  padding-top: 6px;
+}
+
+.detail-row.full {
+  grid-column: 1 / -1;
+}
+
+.detail-label {
+  flex: 0 0 6.4em;
+  font-weight: 700;
+  padding-top: 4px;
+}
+
+.detail-colon {
+  font-weight: 700;
+  padding-top: 4px;
+}
+
+.detail-value {
+  flex: 1;
+  min-width: 0;
+}
+
+.static-value {
+  display: block;
+  padding: 4px 7px;
+}
+
+.static-value.muted {
+  color: #a3a8b0;
+}
+
+.meta-box .detail-row {
+  padding: 4px 0;
+}
+
+.meta-box .detail-label {
+  flex-basis: 10.6em;
+  font-weight: 600;
+}
+
+.field.inv-no,
+.inv-no {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.meta-box .detail-row:first-child .detail-label,
+.meta-box .detail-row:first-child .detail-colon {
+  padding-top: 7px;
 }
 
 .supply-type {
-  margin-top: 10px;
+  margin-top: 8px;
   font-size: 12px;
   padding: 6px 10px;
   border-radius: 6px;
   background: #f0fdf4;
   color: var(--ok);
-  max-width: 340px;
+  width: fit-content;
 }
 
 .supply-type.inter {
@@ -340,17 +584,6 @@ button {
 
 .image-upload {
   position: relative;
-}
-
-.image-upload.logo {
-  margin-bottom: 10px;
-  width: fit-content;
-}
-
-.image-upload.logo img {
-  max-height: 80px;
-  max-width: 220px;
-  display: block;
 }
 
 .image-placeholder {
@@ -409,88 +642,106 @@ button {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
+  margin-top: 16px;
 }
 
-.items thead th {
-  background: #111;
-  color: #fff;
-  font-weight: 600;
-  font-size: 12px;
-  padding: 9px 6px;
-  text-align: left;
+.items th {
+  background: var(--band);
+  font-weight: 700;
+  font-size: 12.5px;
+  padding: 8px 6px;
+  border: 1px solid var(--grid);
+  text-align: center;
+  vertical-align: middle;
 }
 
-.items thead th.num {
-  text-align: right;
+.items td {
+  border: 1px solid var(--grid);
+  padding: 3px 4px;
+  vertical-align: middle;
 }
 
-.items tbody td {
-  border-bottom: 1px solid var(--line);
-  padding: 6px 4px;
-  vertical-align: top;
+.items .c-del {
+  border: 0;
+  background: transparent;
+  width: 30px;
+  text-align: center;
+}
+
+.items .c-sn {
+  width: 44px;
+  text-align: center;
+}
+
+.items .c-serial {
+  width: 150px;
+}
+
+.items td.c-serial,
+.items td.c-hsn,
+.items td.c-gst,
+.items td.c-qty {
+  text-align: center;
+}
+
+.items td.c-serial .field,
+.items td.c-hsn .field {
+  text-align: center;
+}
+
+.items .c-qty {
+  width: 92px;
+}
+
+.items .c-hsn {
+  width: 84px;
+}
+
+.items .c-gst {
+  width: 64px;
+}
+
+.items .c-rate {
+  width: 96px;
+}
+
+.items .c-amt {
+  width: 106px;
 }
 
 .items td.num .field {
   text-align: right;
 }
 
-.items .c-sn {
-  width: 28px;
-  text-align: center;
-  color: var(--muted);
-}
-
-.items tbody .c-sn {
-  padding-top: 10px;
-}
-
-.items .c-hsn {
-  width: 76px;
-}
-
-.items .c-qty {
-  width: 54px;
-}
-
-.items .c-rate {
-  width: 84px;
-}
-
-.items .c-disc {
-  width: 56px;
-}
-
-.items .c-gst {
-  width: 70px;
-}
-
-.items .c-tax {
-  width: 76px;
-}
-
-.items .c-amt {
-  width: 94px;
-}
-
-.items .c-del {
-  width: 28px;
-  text-align: center;
-}
-
-.items tbody .c-tax,
-.items tbody .c-amt {
-  padding-top: 10px;
-  padding-right: 6px;
-}
-
-.items .c-tax small {
-  color: var(--muted);
-  font-size: 11px;
+.items td.c-amt {
+  padding-right: 10px;
 }
 
 .items td.c-gst .field {
+  text-align: center;
+  text-align-last: center;
+  padding: 3px 0;
+}
+
+.qty-unit {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 2px;
+}
+
+.qty-unit .field {
+  text-align: center;
+  padding: 3px 2px;
+}
+
+.items .items-total td {
+  font-weight: 700;
+  padding: 7px 6px;
+}
+
+.items .items-total .qty-label {
   text-align: right;
-  text-align-last: right;
+  padding-right: 12px;
 }
 
 .icon-btn {
@@ -509,7 +760,7 @@ button {
 }
 
 .add-line {
-  margin: 10px 0 4px;
+  margin: 8px 0 12px;
   border: 0;
   background: transparent;
   color: var(--accent);
@@ -519,17 +770,20 @@ button {
 
 /* ---------- Summary ---------- */
 
-.summary {
-  margin-top: 16px;
+.summary-box,
+.sign-box {
+  display: grid;
+  grid-template-columns: 1fr 360px;
 }
 
-.summary .block {
-  margin-bottom: 16px;
+.summary-box {
+  margin-right: 30px;
 }
 
-.words {
-  font-style: italic;
-  font-weight: 600;
+.words-cell {
+  padding: 8px 10px;
+  border-right: 1px solid var(--grid);
+  line-height: 1.5;
 }
 
 .totals {
@@ -537,36 +791,57 @@ button {
   border-collapse: collapse;
 }
 
+.totals th,
 .totals td {
-  padding: 7px 10px;
+  border-bottom: 1px solid var(--grid);
+  padding: 5px 10px;
+  vertical-align: middle;
 }
 
-.totals .subtle td {
-  border-top: 1px solid var(--line);
-  font-weight: 600;
-}
-
-.totals .grand td {
-  background: #f3f4f6;
+.totals th {
+  text-align: left;
   font-weight: 700;
-  font-size: 16px;
-  border-top: 2px solid var(--ink);
+  border-right: 1px solid var(--grid);
+}
+
+.totals td {
+  width: 150px;
+}
+
+.totals .field {
+  text-align: right;
+  padding: 2px 4px;
+}
+
+.totals .grand th,
+.totals .grand td {
+  background: var(--band);
+  font-size: 15px;
+  font-weight: 800;
+  border-bottom: 0;
 }
 
 /* ---------- Payment + signature ---------- */
 
-.pay {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid var(--line);
-  align-items: flex-end;
+.sign-box {
+  border-top: 0;
+  margin-right: 30px;
+}
+
+.bank {
+  padding: 10px 12px;
+}
+
+.bank .label {
+  font-weight: 700;
+  margin-bottom: 6px;
 }
 
 .bank-edit {
   display: grid;
   grid-template-columns: 1fr;
   gap: 2px;
-  max-width: 380px;
+  max-width: 400px;
 }
 
 .bank-edit label {
@@ -619,19 +894,23 @@ button {
 }
 
 .sign {
+  grid-column: 2;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  text-align: right;
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+  padding: 10px 12px;
+  border-left: 1px solid var(--grid);
 }
 
 .sign-images {
   display: flex;
   align-items: flex-end;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 12px;
   min-height: 100px;
-  margin: 10px 0 6px;
+  margin: 8px 0 6px;
 }
 
 .sign-images .image-placeholder {
@@ -646,25 +925,37 @@ button {
 }
 
 .image-upload.signature img {
-  max-width: 200px;
+  max-width: 180px;
   max-height: 80px;
   display: block;
 }
 
 .sign-line {
-  border-top: 1px solid var(--ink);
-  padding-top: 4px;
-  min-width: 200px;
-  text-align: center;
-  font-weight: 600;
-  font-size: 13px;
+  font-weight: 700;
 }
 
-.paper-foot {
-  margin-top: 28px;
-  text-align: center;
-  font-size: 11px;
-  color: var(--muted);
+/* ---------- Terms ---------- */
+
+.terms-box {
+  margin-top: 16px;
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.terms-box .box-title {
+  text-align: left;
+  border: 1px solid var(--grid);
+}
+
+.terms-box .field {
+  margin-top: 6px;
+}
+
+.terms-box ol {
+  margin: 6px 0 0;
+  padding-left: 20px;
+  line-height: 1.45;
 }
 
 /* ---------- History modal ---------- */
@@ -787,13 +1078,18 @@ button {
 @page {
   size: A4;
   margin: 10mm;
+
+  @bottom-right {
+    content: "Page " counter(page) " of " counter(pages);
+    font-size: 9pt;
+  }
 }
 
 @media print {
   html,
   body {
     background: #fff;
-    font-size: 11.5px;
+    font-size: 11px;
   }
 
   * {
@@ -821,6 +1117,10 @@ button {
     display: table;
   }
 
+  ol.print-only {
+    display: block;
+  }
+
   .paper-wrap {
     padding: 0;
     overflow: visible;
@@ -834,38 +1134,203 @@ button {
     padding: 0;
   }
 
-  .title {
-    font-size: 26px;
+  /* Chrome repeats a real <thead>/<tfoot> on every printed page (CSS
+     table-header-group on divs is not repeated), so the business box +
+     strip and the "continued" footer live in one. */
+  .sheet {
+    --strip-h: 9mm;
+    --foot-h: 7mm;
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
   }
 
-  .head {
-    margin-bottom: 14px;
+  .sheet > thead {
+    display: table-header-group;
   }
 
-  .bill {
-    padding-top: 12px;
-    margin-bottom: 14px;
+  .sheet > tbody {
+    display: table-row-group;
   }
 
-  .meta {
-    margin-top: 0;
+  .sheet > tfoot {
+    display: table-footer-group;
   }
 
-  .meta td {
-    width: auto;
+  .sheet > * > tr {
+    display: table-row;
   }
 
-  .party-print {
-    line-height: 1.45;
+  .sheet > * > tr > td {
+    display: table-cell;
   }
 
-  .biz-name {
+  .inv-head {
+    margin-bottom: 10px;
+  }
+
+  .cont-strip {
+    height: var(--strip-h);
+    padding-bottom: 3mm;
+  }
+
+  .cont-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    height: 100%;
+    padding: 0 10px;
+    border: 1px solid var(--grid);
+    border-radius: 6px;
+    background: #f5f8fd;
+    font-size: 10.5px;
+    white-space: nowrap;
+  }
+
+  .cont-client {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+  }
+
+  .cont-note {
+    font-style: italic;
+    color: var(--muted);
+  }
+
+  /* On page 1 the receiver section is pulled up over the continuation strip,
+     and the cover at the end hides the "continued" footer on the last page.
+     Both rely on the strip/footer heights being fixed. */
+  .top-details {
+    position: relative;
+    z-index: 1;
+    margin-top: calc(-1 * var(--strip-h));
+    background: #fff;
+  }
+
+  .cont-cover {
+    position: relative;
+    z-index: 1;
+    height: var(--foot-h);
+    margin-bottom: calc(-1 * var(--foot-h));
+    background: #fff;
+  }
+
+  .sheet-foot-text {
+    height: var(--foot-h);
+    padding-top: 2mm;
+    text-align: right;
+    font-size: 10px;
+    font-style: italic;
+    color: var(--muted);
+  }
+
+  .inv-head-bar {
+    padding: 0 12px;
+  }
+
+  .head-gstin,
+  .head-phone {
+    font-size: 12px;
+  }
+
+  .icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .doc-tab {
+    font-size: 14px;
+    padding: 2px 24px 4px;
+  }
+
+  .copy-label .print-only {
+    display: block;
+  }
+
+  .inv-head-body {
+    gap: 18px;
+    padding: 8px 14px 10px;
+  }
+
+  .inv-head .image-upload.logo.has-image {
+    padding-right: 18px;
+  }
+
+  .inv-head .image-upload.logo img {
+    max-height: 90px;
+    max-width: 160px;
+  }
+
+  .inv-head-main > .print-only {
+    display: block;
+  }
+
+  .biz-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--brand);
+  }
+
+  .biz-tagline {
+    font-weight: 600;
+    font-size: 11.5px;
+  }
+
+  .biz-address {
+    font-size: 12px;
+    margin-top: 2px;
+  }
+
+  .biz-address .icon {
+    width: 13px;
+    height: 13px;
+  }
+
+  .biz-extra {
+    font-size: 10px;
+  }
+
+  .top-details {
+    grid-template-columns: 1fr 260px;
+    gap: 10px;
+  }
+
+  .receiver,
+  .meta-box {
+    padding: 2px 10px 6px;
+  }
+
+  .detail-label,
+  .detail-colon,
+  .meta-box .detail-row:first-child .detail-label,
+  .meta-box .detail-row:first-child .detail-colon {
+    padding-top: 0;
+  }
+
+  .detail-row {
+    padding-top: 5px;
+  }
+
+  .meta-box .detail-row {
+    padding: 4px 0;
+    align-items: baseline;
+  }
+
+  .static-value {
+    padding: 0;
+  }
+
+  .inv-no {
     font-size: 15px;
-    font-weight: 700;
   }
 
-  .party-name {
-    font-weight: 700;
+  .items {
+    margin-top: 12px;
   }
 
   .items thead {
@@ -876,80 +1341,107 @@ button {
     break-inside: avoid;
   }
 
-  .items tbody td {
-    padding: 6px;
+  .items th {
+    padding: 6px 4px;
+    font-size: 10.5px;
   }
 
-  .items tbody .c-sn,
-  .items tbody .c-tax,
-  .items tbody .c-amt {
-    padding-top: 6px;
+  .items td {
+    padding: 4px 6px;
   }
 
-  .items .blank-row,
-  .items.no-discount .c-disc {
+  .items .blank-row {
     display: none;
   }
 
-  .items .c-sn {
-    width: 22px;
+  /* Set while printing a multi-page bill (see measurePages). */
+  .items tr.page-start {
+    break-before: page;
   }
 
-  .items .c-hsn {
-    width: 60px;
+  .items .fill-row td {
+    padding: 0;
+  }
+
+  .items .c-sn {
+    width: 36px;
+  }
+
+  .items .c-serial {
+    width: 130px;
+    word-break: break-all;
   }
 
   .items .c-qty {
-    width: 40px;
+    width: 56px;
   }
 
-  .items .c-rate {
-    width: 68px;
-  }
-
-  .items .c-disc {
-    width: 42px;
+  .items .c-hsn {
+    width: 66px;
   }
 
   .items .c-gst {
-    width: 44px;
+    width: 42px;
   }
 
-  .items .c-tax {
-    width: 68px;
+  .items .c-rate {
+    width: 74px;
   }
 
   .items .c-amt {
-    width: 82px;
+    width: 84px;
   }
 
-  .summary,
-  .pay {
+  .summary-box,
+  .sign-box {
+    grid-template-columns: 1fr 290px;
+    margin-right: 0;
+  }
+
+  .summary-box {
+    margin-top: -1px;
+  }
+
+  .summary-box,
+  .sign-box,
+  .terms-box {
     break-inside: avoid;
   }
 
-  .summary .block {
-    margin-bottom: 10px;
+  /* The last item row, total quantity, totals and signature move to a new
+     page together, so the final page never starts with just the totals. */
+  .items .items-tail {
+    break-inside: avoid;
   }
 
+  .summary-box,
+  .sign-box {
+    break-before: avoid;
+  }
+
+  .preview-bar {
+    display: none;
+  }
+
+  .totals th,
   .totals td {
     padding: 4px 8px;
   }
 
-  .totals .grand td {
-    font-size: 14px;
+  .totals td {
+    width: 110px;
   }
 
-  .pay {
-    margin-top: 12px;
-    padding-top: 12px;
+  .totals .grand th,
+  .totals .grand td {
+    font-size: 13px;
   }
 
   .sign-images {
-    min-height: 90px;
+    min-height: 80px;
   }
 
-  .paper-foot {
-    margin-top: 16px;
+  .terms-box {
+    margin-top: 12px;
   }
 }
