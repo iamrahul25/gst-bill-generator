@@ -1247,6 +1247,92 @@ select:focus-visible {
   gap: 8px;
 }
 
+.modal.profile-modal {
+  width: min(560px, 100%);
+  max-height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-modal .modal-head {
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--grid);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.profile-modal .modal-head h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.profile-form {
+  padding: 16px 20px 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profile-form .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 520px) {
+  .profile-form .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.profile-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.profile-form input,
+.profile-form select,
+.profile-form textarea {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 400;
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  min-height: 38px;
+  box-sizing: border-box;
+}
+
+.profile-form textarea {
+  resize: vertical;
+  min-height: 52px;
+}
+
+.profile-form input:focus,
+.profile-form select:focus,
+.profile-form textarea:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-color: var(--accent);
+}
+
+.profile-form .section-heading {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+  padding-bottom: 2px;
+  border-bottom: 1px dashed #e5e7eb;
+}
+
 .history-scroll {
   overflow: auto;
 }

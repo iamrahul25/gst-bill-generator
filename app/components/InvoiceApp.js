@@ -1,10 +1,11 @@
 "use client";
 
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import QRCode from "qrcode";
 import {
   COPY_LABELS,
+  DEFAULT_TERMS,
   GST_RATES,
   amountInWords,
   calcInvoice,
@@ -234,7 +235,7 @@ function ReceiverBox({ picker, party, onChange, gst }) {
   );
 }
 
-function ProfilePicker({ items, currentId, onPick, onSave, onDelete, label }) {
+function ProfilePicker({ items, currentId, onPick, onNew, label }) {
   const inList = items.some((p) => p.id === currentId);
   return (
     <div className="profile-bar screen-only">
@@ -245,16 +246,465 @@ function ProfilePicker({ items, currentId, onPick, onSave, onDelete, label }) {
             {p.name}
           </option>
         ))}
-        {inList ? <option value="__new">+ New {label} (blank)</option> : null}
       </select>
-      <button type="button" onClick={onSave} title={`Save these ${label} details in this browser`}>
-        Save
+      <button type="button" onClick={onNew} title={`Add new ${label}`}>
+        New
       </button>
-      {inList ? (
-        <button type="button" className="danger-text" onClick={onDelete}>
-          Delete
-        </button>
-      ) : null}
+    </div>
+  );
+}
+
+function BusinessModal({ onClose, onSave }) {
+  const [form, setForm] = useState({
+    name: "",
+    tagline: "",
+    gstin: "",
+    phone: "",
+    email: "",
+    address: "",
+    city: "",
+    state: "",
+    pincode: "",
+    pan: "",
+    accountName: "",
+    bankName: "",
+    accountNumber: "",
+    ifsc: "",
+    branch: "",
+    upiId: "",
+    terms: DEFAULT_TERMS,
+  });
+  const [error, setError] = useState("");
+  const titleId = useId();
+  const nameRef = useRef(null);
+
+  useEffect(() => {
+    nameRef.current?.focus();
+    const onKey = (event) => {
+      if (event.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const setField = (field, value) => {
+    setForm((prev) => {
+      const next = { ...prev, [field]: value };
+      if (field === "gstin") {
+        const clean = value.toUpperCase().replace(/\s/g, "");
+        next.gstin = clean;
+        const st = stateFromGstin(clean);
+        if (st && !prev.state) next.state = st;
+        if (!prev.pan || prev.pan === panFromGstin(prev.gstin)) {
+          next.pan = panFromGstin(clean);
+        }
+      }
+      return next;
+    });
+  };
+
+  const submit = (event) => {
+    event.preventDefault();
+    const trimmedName = form.name.trim();
+    if (!trimmedName) {
+      setError("Enter the business name.");
+      nameRef.current?.focus();
+      return;
+    }
+    const cleanGst = form.gstin.toUpperCase().replace(/\s/g, "");
+    if (cleanGst && !isValidGstin(cleanGst)) {
+      setError("Enter a valid 15-character GSTIN (or leave it blank).");
+      return;
+    }
+    onSave({
+      ...form,
+      name: trimmedName,
+      gstin: cleanGst,
+      pan: form.pan.toUpperCase().replace(/\s/g, ""),
+      pincode: form.pincode.replace(/\D/g, "").slice(0, 6),
+    });
+  };
+
+  return (
+    <div className="modal-backdrop screen-only" onClick={onClose}>
+      <div
+        className="modal profile-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="modal-head">
+          <h2 id={titleId}>New Business Details</h2>
+          <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">
+            ×
+          </button>
+        </div>
+        <form className="profile-form" onSubmit={submit}>
+          <label>
+            Business name *
+            <input
+              ref={nameRef}
+              value={form.name}
+              maxLength={160}
+              placeholder="e.g. Acme Enterprises"
+              onChange={(e) => setField("name", e.target.value)}
+            />
+          </label>
+
+          <label>
+            Tagline / deals in
+            <input
+              value={form.tagline}
+              maxLength={160}
+              placeholder="e.g. Wholesale Dealer of Electronics"
+              onChange={(e) => setField("tagline", e.target.value)}
+            />
+          </label>
+
+          <div className="form-row">
+            <label>
+              GSTIN
+              <input
+                value={form.gstin}
+                maxLength={15}
+                spellCheck={false}
+                autoCapitalize="characters"
+                placeholder="15-character GSTIN"
+                onChange={(e) => setField("gstin", e.target.value)}
+              />
+            </label>
+            <label>
+              PAN
+              <input
+                value={form.pan}
+                maxLength={10}
+                spellCheck={false}
+                autoCapitalize="characters"
+                placeholder="10-digit PAN"
+                onChange={(e) => setField("pan", e.target.value.toUpperCase().replace(/\s/g, ""))}
+              />
+            </label>
+          </div>
+
+          <div className="form-row">
+            <label>
+              Phone / Mobile
+              <input
+                value={form.phone}
+                type="tel"
+                placeholder="Phone number"
+                onChange={(e) => setField("phone", e.target.value)}
+              />
+            </label>
+            <label>
+              Email
+              <input
+                value={form.email}
+                type="email"
+                placeholder="Email address"
+                onChange={(e) => setField("email", e.target.value)}
+              />
+            </label>
+          </div>
+
+          <label>
+            Address
+            <textarea
+              value={form.address}
+              placeholder="Street / Building / Area"
+              onChange={(e) => setField("address", e.target.value)}
+            />
+          </label>
+
+          <div className="form-row">
+            <label>
+              City / Town
+              <input
+                value={form.city}
+                placeholder="City / Village"
+                onChange={(e) => setField("city", e.target.value)}
+              />
+            </label>
+            <label>
+              PIN Code
+              <input
+                value={form.pincode}
+                maxLength={6}
+                inputMode="numeric"
+                placeholder="6-digit PIN"
+                onChange={(e) => setField("pincode", e.target.value.replace(/\D/g, "").slice(0, 6))}
+              />
+            </label>
+          </div>
+
+          <label>
+            State
+            <StateSelect value={form.state} onChange={(val) => setField("state", val)} />
+          </label>
+
+          <div className="section-heading">Bank Details (Optional)</div>
+
+          <div className="form-row">
+            <label>
+              Bank Name
+              <input
+                value={form.bankName}
+                placeholder="Bank Name"
+                onChange={(e) => setField("bankName", e.target.value)}
+              />
+            </label>
+            <label>
+              Account Name
+              <input
+                value={form.accountName}
+                placeholder="Account Holder Name"
+                onChange={(e) => setField("accountName", e.target.value)}
+              />
+            </label>
+          </div>
+
+          <div className="form-row">
+            <label>
+              Account Number
+              <input
+                value={form.accountNumber}
+                placeholder="Account Number"
+                onChange={(e) => setField("accountNumber", e.target.value)}
+              />
+            </label>
+            <label>
+              IFSC Code
+              <input
+                value={form.ifsc}
+                maxLength={11}
+                autoCapitalize="characters"
+                placeholder="IFSC Code"
+                onChange={(e) => setField("ifsc", e.target.value.toUpperCase().replace(/\s/g, ""))}
+              />
+            </label>
+          </div>
+
+          <div className="form-row">
+            <label>
+              Branch
+              <input
+                value={form.branch}
+                placeholder="Branch"
+                onChange={(e) => setField("branch", e.target.value)}
+              />
+            </label>
+            <label>
+              UPI ID
+              <input
+                value={form.upiId}
+                placeholder="e.g. business@upi"
+                onChange={(e) => setField("upiId", e.target.value.trim())}
+              />
+            </label>
+          </div>
+
+          <div className="section-heading">Terms &amp; Conditions</div>
+          <label>
+            Invoice terms
+            <AutoTextarea
+              value={form.terms}
+              onChange={(v) => setField("terms", v)}
+              placeholder="One term per line"
+              minRows={4}
+            />
+            <span className="hint">Saved with this business and printed on every invoice.</span>
+          </label>
+
+          {error ? (
+            <div className="hint error" role="alert">
+              {error}
+            </div>
+          ) : null}
+
+          <div className="register-actions">
+            <button type="button" onClick={onClose}>
+              Cancel
+            </button>
+            <button type="submit" className="primary">
+              Save
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function ClientModal({ onClose, onSave }) {
+  const [form, setForm] = useState({
+    name: "",
+    gstin: "",
+    phone: "",
+    email: "",
+    address: "",
+    city: "",
+    state: "",
+    pincode: "",
+  });
+  const [error, setError] = useState("");
+  const titleId = useId();
+  const nameRef = useRef(null);
+
+  useEffect(() => {
+    nameRef.current?.focus();
+    const onKey = (event) => {
+      if (event.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const setField = (field, value) => {
+    setForm((prev) => {
+      const next = { ...prev, [field]: value };
+      if (field === "gstin") {
+        const clean = value.toUpperCase().replace(/\s/g, "");
+        next.gstin = clean;
+        const st = stateFromGstin(clean);
+        if (st && !prev.state) next.state = st;
+      }
+      return next;
+    });
+  };
+
+  const submit = (event) => {
+    event.preventDefault();
+    const trimmedName = form.name.trim();
+    if (!trimmedName) {
+      setError("Enter the customer name.");
+      nameRef.current?.focus();
+      return;
+    }
+    const cleanGst = form.gstin.toUpperCase().replace(/\s/g, "");
+    if (cleanGst && !isValidGstin(cleanGst)) {
+      setError("Enter a valid 15-character GSTIN (or leave it blank).");
+      return;
+    }
+    onSave({
+      ...form,
+      name: trimmedName,
+      gstin: cleanGst,
+      pincode: form.pincode.replace(/\D/g, "").slice(0, 6),
+    });
+  };
+
+  return (
+    <div className="modal-backdrop screen-only" onClick={onClose}>
+      <div
+        className="modal profile-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="modal-head">
+          <h2 id={titleId}>New Customer Details</h2>
+          <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">
+            ×
+          </button>
+        </div>
+        <form className="profile-form" onSubmit={submit}>
+          <label>
+            Customer / Company name *
+            <input
+              ref={nameRef}
+              value={form.name}
+              maxLength={160}
+              placeholder="e.g. John Doe / XYZ Corp"
+              onChange={(e) => setField("name", e.target.value)}
+            />
+          </label>
+
+          <label>
+            GSTIN (optional)
+            <input
+              value={form.gstin}
+              maxLength={15}
+              spellCheck={false}
+              autoCapitalize="characters"
+              placeholder="15-character GSTIN"
+              onChange={(e) => setField("gstin", e.target.value)}
+            />
+          </label>
+
+          <div className="form-row">
+            <label>
+              Phone / Mobile
+              <input
+                value={form.phone}
+                type="tel"
+                placeholder="Phone number"
+                onChange={(e) => setField("phone", e.target.value)}
+              />
+            </label>
+            <label>
+              Email
+              <input
+                value={form.email}
+                type="email"
+                placeholder="Email address"
+                onChange={(e) => setField("email", e.target.value)}
+              />
+            </label>
+          </div>
+
+          <label>
+            Address
+            <textarea
+              value={form.address}
+              placeholder="Street / Building / Area"
+              onChange={(e) => setField("address", e.target.value)}
+            />
+          </label>
+
+          <div className="form-row">
+            <label>
+              City / Town
+              <input
+                value={form.city}
+                placeholder="City / Village"
+                onChange={(e) => setField("city", e.target.value)}
+              />
+            </label>
+            <label>
+              PIN Code
+              <input
+                value={form.pincode}
+                maxLength={6}
+                inputMode="numeric"
+                placeholder="6-digit PIN"
+                onChange={(e) => setField("pincode", e.target.value.replace(/\D/g, "").slice(0, 6))}
+              />
+            </label>
+          </div>
+
+          <label>
+            State
+            <StateSelect value={form.state} onChange={(val) => setField("state", val)} />
+          </label>
+
+          {error ? (
+            <div className="hint error" role="alert">
+              {error}
+            </div>
+          ) : null}
+
+          <div className="register-actions">
+            <button type="button" onClick={onClose}>
+              Cancel
+            </button>
+            <button type="submit" className="primary">
+              Save
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
@@ -336,6 +786,8 @@ export default function InvoiceApp() {
   const [invoices, setInvoices] = useState([]);
   const [lastNumber, setLastNumber] = useState("");
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [bizModalOpen, setBizModalOpen] = useState(false);
+  const [clientModalOpen, setClientModalOpen] = useState(false);
   const [toast, setToast] = useState(null);
   const [qr, setQr] = useState("");
   const [preview, setPreview] = useState(false);
@@ -349,6 +801,56 @@ export default function InvoiceApp() {
   const dummySnapshot = useRef("");
   const toastTimer = useRef(null);
   const shortcutRef = useRef(null);
+
+  const notify = (msg, type = "ok") => {
+    clearTimeout(toastTimer.current);
+    setToast({ msg, type });
+    toastTimer.current = setTimeout(() => setToast(null), type === "error" ? 6000 : 2500);
+  };
+
+  const attempt = (fn) => {
+    try {
+      return fn();
+    } catch (e) {
+      notify(e.message, "error");
+      return undefined;
+    }
+  };
+
+  const confirmSavedGstin = useCallback(async (gstin) => {
+    const generation = ++gstLookup.current;
+    setGstCheck({ gstin, status: "checking" });
+    try {
+      const response = await fetch(`/api/gst?gstin=${encodeURIComponent(gstin)}`);
+      const data = await response.json().catch(() => ({}));
+      if (generation !== gstLookup.current) return;
+      if (!response.ok) throw new Error(data.error || "Could not check this GSTIN.");
+      const match = (data.businesses || []).find(
+        (item) => (item.gstin || "").toUpperCase().replace(/\s/g, "") === gstin
+      );
+      if (!match) {
+        setGstCheck({ gstin, status: "missing" });
+        return;
+      }
+      setInv((p) => {
+        if (!p || p.business.gstin !== gstin) return p;
+        return {
+          ...p,
+          registeredGstin: gstin,
+          business: {
+            ...p.business,
+            gstin,
+            name: p.business.name.trim() ? p.business.name : match.name || p.business.name,
+          },
+        };
+      });
+      setGstCheck({ gstin, status: "registered" });
+    } catch (error) {
+      if (generation !== gstLookup.current) return;
+      setGstCheck({ gstin: "", status: "" });
+      notify(error.message, "error");
+    }
+  }, []);
 
   useEffect(() => {
     const data = store.loadAll();
@@ -374,22 +876,8 @@ export default function InvoiceApp() {
         confirmSavedGstin(gstin);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount; confirmSavedGstin is stable
   }, []);
-
-  const notify = (msg, type = "ok") => {
-    clearTimeout(toastTimer.current);
-    setToast({ msg, type });
-    toastTimer.current = setTimeout(() => setToast(null), type === "error" ? 6000 : 2500);
-  };
-
-  const attempt = (fn) => {
-    try {
-      return fn();
-    } catch (e) {
-      notify(e.message, "error");
-      return undefined;
-    }
-  };
 
   useEffect(() => {
     if (!inv) return;
@@ -625,41 +1113,6 @@ export default function InvoiceApp() {
   const confirmDiscard = () =>
     !dirty || confirm("You have unsaved changes on this invoice. Discard them?");
 
-  const confirmSavedGstin = async (gstin) => {
-    const generation = ++gstLookup.current;
-    setGstCheck({ gstin, status: "checking" });
-    try {
-      const response = await fetch(`/api/gst?gstin=${encodeURIComponent(gstin)}`);
-      const data = await response.json().catch(() => ({}));
-      if (generation !== gstLookup.current) return;
-      if (!response.ok) throw new Error(data.error || "Could not check this GSTIN.");
-      const match = (data.businesses || []).find(
-        (item) => (item.gstin || "").toUpperCase().replace(/\s/g, "") === gstin
-      );
-      if (!match) {
-        setGstCheck({ gstin, status: "missing" });
-        return;
-      }
-      setInv((p) => {
-        if (p.business.gstin !== gstin) return p;
-        return {
-          ...p,
-          registeredGstin: gstin,
-          business: {
-            ...p.business,
-            gstin,
-            name: p.business.name.trim() ? p.business.name : match.name || p.business.name,
-          },
-        };
-      });
-      setGstCheck({ gstin, status: "registered" });
-    } catch (error) {
-      if (generation !== gstLookup.current) return;
-      setGstCheck({ gstin: "", status: "" });
-      notify(error.message, "error");
-    }
-  };
-
   const pickBusiness = (id) => {
     if (inv.numberIssued) {
       return notify("This bill already has an invoice number. Start a new bill to use another GSTIN.", "error");
@@ -677,45 +1130,43 @@ export default function InvoiceApp() {
     else setGstCheck({ gstin: "", status: "" });
   };
 
-  const saveBusinessProfile = () => {
-    if (!b.name.trim()) return notify("Enter your business name first.", "error");
+  const handleSaveNewBusiness = (newBiz) => {
     attempt(() => {
-      const { list, saved } = store.saveBusiness(businesses, b, uid);
+      const { list, saved } = store.saveBusiness(businesses, newBiz, uid);
       setBusinesses(list);
-      setInv((p) => ({ ...p, business: { ...p.business, id: saved.id } }));
-      notify("Business details saved in this browser.");
-    });
-  };
-
-  const deleteBusinessProfile = () => {
-    if (!confirm(`Delete saved business "${b.name}"? (This invoice keeps its details.)`)) return;
-    attempt(() => {
-      setBusinesses(store.deleteBusiness(businesses, b.id));
-      setInv((p) => ({ ...p, business: { ...p.business, id: "" } }));
+      setInv((p) => ({
+        ...p,
+        business: { ...emptyBusiness(), ...p.business, ...saved },
+        registeredGstin: "",
+      }));
+      setBizModalOpen(false);
+      const gstin = (saved.gstin || "").toUpperCase().replace(/\s/g, "");
+      if (inv.gstEnabled && isValidGstin(gstin)) {
+        confirmSavedGstin(gstin);
+      } else {
+        gstLookup.current += 1;
+        setGstCheck({ gstin: "", status: "" });
+      }
+      notify(`Saved business "${saved.name}".`);
     });
   };
 
   const pickClient = (id) => {
-    if (id === "__new") return update({ client: emptyClient() });
+    if (id === "__new" || !id) return update({ client: emptyClient() });
     const found = clients.find((x) => x.id === id);
     if (found) update({ client: { ...found } });
   };
 
-  const saveClientProfile = () => {
-    if (!c.name.trim()) return notify("Enter the customer name first.", "error");
+  const handleSaveNewClient = (newClient) => {
     attempt(() => {
-      const { list, saved } = store.saveClient(clients, c, uid);
+      const { list, saved } = store.saveClient(clients, newClient, uid);
       setClients(list);
-      setInv((p) => ({ ...p, client: { ...p.client, id: saved.id } }));
-      notify("Customer details saved in this browser.");
-    });
-  };
-
-  const deleteClientProfile = () => {
-    if (!confirm(`Delete saved customer "${c.name}"? (This invoice keeps its details.)`)) return;
-    attempt(() => {
-      setClients(store.deleteClient(clients, c.id));
-      setInv((p) => ({ ...p, client: { ...p.client, id: "" } }));
+      setInv((p) => ({
+        ...p,
+        client: { ...emptyClient(), ...p.client, ...saved },
+      }));
+      setClientModalOpen(false);
+      notify(`Saved customer "${saved.name}".`);
     });
   };
 
@@ -1056,8 +1507,7 @@ export default function InvoiceApp() {
                       items={businesses}
                       currentId={b.id}
                       onPick={pickBusiness}
-                      onSave={saveBusinessProfile}
-                      onDelete={deleteBusinessProfile}
+                      onNew={() => setBizModalOpen(true)}
                     />
                     <div className="inv-head-bar">
                       <div className="head-gstin">
@@ -1218,8 +1668,7 @@ export default function InvoiceApp() {
                           items={clients}
                           currentId={c.id}
                           onPick={pickClient}
-                          onSave={saveClientProfile}
-                          onDelete={deleteClientProfile}
+                          onNew={() => setClientModalOpen(true)}
                         />
                       }
                       party={c}
@@ -1483,14 +1932,7 @@ export default function InvoiceApp() {
 
                   <section className={`box terms-box ${termLines.length ? "" : "screen-only"}`}>
                     <div className="box-title">Terms &amp; Conditions</div>
-                    <AutoTextarea
-                      value={b.terms}
-                      onChange={(v) => setBiz("terms", v)}
-                      placeholder="One term per line"
-                      minRows={3}
-                    />
-                    <div className="hint screen-only">Saved with your business profile.</div>
-                    <ol className="print-only">
+                    <ol>
                       {termLines.map((t, i) => (
                         <li key={i}>{t}</li>
                       ))}
@@ -1519,6 +1961,20 @@ export default function InvoiceApp() {
           onDuplicate={duplicateInvoice}
           onDelete={deleteInvoice}
           onClose={() => setHistoryOpen(false)}
+        />
+      ) : null}
+
+      {bizModalOpen ? (
+        <BusinessModal
+          onClose={() => setBizModalOpen(false)}
+          onSave={handleSaveNewBusiness}
+        />
+      ) : null}
+
+      {clientModalOpen ? (
+        <ClientModal
+          onClose={() => setClientModalOpen(false)}
+          onSave={handleSaveNewClient}
         />
       ) : null}
 
