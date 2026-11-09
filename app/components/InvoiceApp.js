@@ -28,6 +28,7 @@ import {
 import * as store from "../lib/storage";
 import dummy from "../data/dummy.json";
 import { AutoTextarea, DateField, Field, ImageUpload, Input, StateSelect, TextArea, TimeField } from "./fields";
+import GstinSearch from "./GstinSearch";
 
 const BANK_FIELDS = [
   ["accountName", "Account Name"],
@@ -340,6 +341,9 @@ export default function InvoiceApp() {
   const [preview, setPreview] = useState(false);
   const [printLayout, setPrintLayout] = useState(null);
   const [install, setInstall] = useState(null);
+  const [issuing, setIssuing] = useState(false);
+  const [gstCheck, setGstCheck] = useState({ gstin: "", status: "" });
+  const gstLookup = useRef(0);
   const sheetRef = useRef(null);
   const savedSnapshot = useRef("");
   const dummySnapshot = useRef("");
@@ -362,6 +366,14 @@ export default function InvoiceApp() {
         ? ""
         : JSON.stringify(initial);
     setInv(initial);
+    const gstin = (initial.business?.gstin || "").toUpperCase().replace(/\s/g, "");
+    if (initial.gstEnabled && isValidGstin(gstin)) {
+      if (initial.registeredGstin === gstin) {
+        setGstCheck({ gstin, status: "registered" });
+      } else {
+        confirmSavedGstin(gstin);
+      }
+    }
   }, []);
 
   const notify = (msg, type = "ok") => {
@@ -521,6 +533,82 @@ export default function InvoiceApp() {
   const setBiz = updateParty("business");
   const setClient = updateParty("client");
 
+  const setBillType = (gstEnabled) =>
+    setInv((p) => {
+      if (p.gstEnabled === gstEnabled) return p;
+      if (gstEnabled && !p.numberIssued) return { ...p, gstEnabled, number: "" };
+      if (!p.numberIssued && !p.number.trim()) {
+        return { ...p, gstEnabled, number: nextInvoiceNumber(lastNumber) };
+      }
+      return { ...p, gstEnabled };
+    });
+
+  const editGstin = (value) => {
+    if (inv.numberIssued) return;
+    gstLookup.current += 1;
+    setGstCheck({ gstin: "", status: "" });
+    const gstin = value.toUpperCase().replace(/\s/g, "");
+    setInv((p) => {
+      const next = { ...p.business, gstin };
+      const st = stateFromGstin(gstin);
+      if (st && !p.business.state) next.state = st;
+      if (!p.business.pan || p.business.pan === panFromGstin(p.business.gstin)) next.pan = panFromGstin(gstin);
+      return {
+        ...p,
+        registeredGstin: p.registeredGstin === gstin ? p.registeredGstin : "",
+        business: next,
+      };
+    });
+    if (isValidGstin(gstin)) confirmSavedGstin(gstin);
+  };
+
+  const selectRegistered = ({ gstin, name }, meta) => {
+    gstLookup.current += 1;
+    setGstCheck({ gstin, status: "registered" });
+    const local = businesses.find((item) => (item.gstin || "").toUpperCase() === gstin);
+    setInv((p) => ({
+      ...p,
+      registeredGstin: gstin,
+      business: {
+        ...(local ? { ...emptyBusiness(), ...local } : p.business),
+        gstin,
+        name,
+        state: stateFromGstin(gstin) || local?.state || p.business.state,
+        pan: panFromGstin(gstin) || local?.pan || "",
+      },
+    }));
+    notify(meta?.already ? `${name} is already registered. Selected it.` : `Using ${name}.`);
+  };
+
+  const generateNumber = async () => {
+    if (!gst || inv.numberIssued || issuing) return;
+    if (!inv.registeredGstin || inv.registeredGstin !== b.gstin) {
+      return notify("Search and select a registered GST number first.", "error");
+    }
+    if (!inv.date) return notify("Choose an invoice date first.", "error");
+    setIssuing(true);
+    try {
+      const response = await fetch("/api/gst", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "generate",
+          gstin: inv.registeredGstin,
+          date: inv.date,
+          invoiceId: inv.id,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Could not generate an invoice number.");
+      setInv((p) => ({ ...p, number: data.number, numberIssued: true }));
+      notify(`Invoice number ${data.number}`);
+    } catch (error) {
+      notify(error.message, "error");
+    } finally {
+      setIssuing(false);
+    }
+  };
+
   const setItem = (id, field, value) =>
     setInv((p) => ({ ...p, items: p.items.map((it) => (it.id === id ? { ...it, [field]: value } : it)) }));
   const addItem = () =>
@@ -537,10 +625,56 @@ export default function InvoiceApp() {
   const confirmDiscard = () =>
     !dirty || confirm("You have unsaved changes on this invoice. Discard them?");
 
+  const confirmSavedGstin = async (gstin) => {
+    const generation = ++gstLookup.current;
+    setGstCheck({ gstin, status: "checking" });
+    try {
+      const response = await fetch(`/api/gst?gstin=${encodeURIComponent(gstin)}`);
+      const data = await response.json().catch(() => ({}));
+      if (generation !== gstLookup.current) return;
+      if (!response.ok) throw new Error(data.error || "Could not check this GSTIN.");
+      const match = (data.businesses || []).find(
+        (item) => (item.gstin || "").toUpperCase().replace(/\s/g, "") === gstin
+      );
+      if (!match) {
+        setGstCheck({ gstin, status: "missing" });
+        return;
+      }
+      setInv((p) => {
+        if (p.business.gstin !== gstin) return p;
+        return {
+          ...p,
+          registeredGstin: gstin,
+          business: {
+            ...p.business,
+            gstin,
+            name: p.business.name.trim() ? p.business.name : match.name || p.business.name,
+          },
+        };
+      });
+      setGstCheck({ gstin, status: "registered" });
+    } catch (error) {
+      if (generation !== gstLookup.current) return;
+      setGstCheck({ gstin: "", status: "" });
+      notify(error.message, "error");
+    }
+  };
+
   const pickBusiness = (id) => {
-    if (id === "__new") return update({ business: emptyBusiness() });
+    if (inv.numberIssued) {
+      return notify("This bill already has an invoice number. Start a new bill to use another GSTIN.", "error");
+    }
+    gstLookup.current += 1;
+    if (id === "__new") {
+      setGstCheck({ gstin: "", status: "" });
+      return update({ business: emptyBusiness(), registeredGstin: "" });
+    }
     const found = businesses.find((x) => x.id === id);
-    if (found) update({ business: { ...emptyBusiness(), ...found } });
+    if (!found) return;
+    const gstin = (found.gstin || "").toUpperCase().replace(/\s/g, "");
+    update({ business: { ...emptyBusiness(), ...found, gstin }, registeredGstin: "" });
+    if (isValidGstin(gstin)) confirmSavedGstin(gstin);
+    else setGstCheck({ gstin: "", status: "" });
   };
 
   const saveBusinessProfile = () => {
@@ -594,8 +728,8 @@ export default function InvoiceApp() {
       if (business.name.trim()) ({ list: bList, saved: business } = store.saveBusiness(bList, business, uid));
       if (client.name.trim()) ({ list: cList, saved: client } = store.saveClient(cList, client, uid));
       const next = { ...inv, business, client };
-      const list = store.saveInvoiceRecord(invoices, next, calc.total);
-      if (!isSaved) setLastNumber(next.number);
+      const list = store.saveInvoiceRecord(invoices, next, calc.total, { trackNumber: !next.gstEnabled });
+      if (!isSaved && !next.gstEnabled) setLastNumber(next.number);
       setBusinesses(bList);
       setClients(cList);
       setInvoices(list);
@@ -608,7 +742,9 @@ export default function InvoiceApp() {
     invoices.some((r) => r.id !== inv.id && r.number.trim().toLowerCase() === inv.number.trim().toLowerCase());
 
   const handleSave = () => {
-    if (!inv.number.trim()) return notify("Enter an invoice number.", "error");
+    if (!inv.number.trim()) {
+      return notify(gst ? "Generate an invoice number first." : "Enter an invoice number.", "error");
+    }
     if (numberClash() && !confirm(`Invoice number ${inv.number} is already used by another saved invoice. Save anyway?`))
       return;
     if (persistInvoice()) notify(`Invoice ${inv.number} saved.`);
@@ -616,6 +752,7 @@ export default function InvoiceApp() {
   shortcutRef.current = handleSave;
 
   const handlePrint = () => {
+    if (gst && !inv.number.trim()) return notify("Generate an invoice number first.", "error");
     if (inv.number.trim() && !numberClash()) persistInvoice();
     const prevTitle = document.title;
     document.title = [inv.number, c.name].filter(Boolean).join(" - ") || prevTitle;
@@ -640,6 +777,10 @@ export default function InvoiceApp() {
     const client = pickOther(dummy.customers, c.name);
     const next = {
       ...inv,
+      id: inv.numberIssued ? uid() : inv.id,
+      number: inv.gstEnabled ? "" : inv.numberIssued ? nextInvoiceNumber(lastNumber) : inv.number,
+      numberIssued: false,
+      registeredGstin: "",
       business: { ...emptyBusiness(), ...business, pan: panFromGstin(business.gstin), terms: terms.join("\n") },
       client: { ...emptyClient(), ...client },
       items: items.map((it) => ({ ...emptyItem(), ...it })),
@@ -648,33 +789,61 @@ export default function InvoiceApp() {
     };
     dummySnapshot.current = JSON.stringify(next);
     setInv(next);
+    const gstin = (business.gstin || "").toUpperCase().replace(/\s/g, "");
+    if (inv.gstEnabled && isValidGstin(gstin)) confirmSavedGstin(gstin);
+    else {
+      gstLookup.current += 1;
+      setGstCheck({ gstin: "", status: "" });
+    }
     notify(`Filled dummy data: ${business.name} → ${client.name}`);
   };
 
   const handleNew = () => {
     if (!confirmDiscard()) return;
-    const next = newInvoice({ business: b, lastNumber, gstEnabled: gst });
-    savedSnapshot.current = JSON.stringify(next);
+    gstLookup.current += 1;
+    setGstCheck({ gstin: "", status: "" });
+    const next = newInvoice({ lastNumber, gstEnabled: inv.gstEnabled });
+    savedSnapshot.current = "";
+    dummySnapshot.current = "";
+    setHistoryOpen(false);
     setInv(next);
+    attempt(() => store.saveDraft(next));
   };
 
   const openInvoice = (rec) => {
     if (rec.id !== inv.id && !confirmDiscard()) return;
-    const data = normalizeInvoice(rec.data);
+    gstLookup.current += 1;
+    const source = { ...rec.data };
+    if (source.numberIssued == null && source.number) source.numberIssued = true;
+    const data = normalizeInvoice(source);
     setInv(data);
     savedSnapshot.current = JSON.stringify(data);
     setHistoryOpen(false);
+    const gstin = (data.business?.gstin || "").toUpperCase().replace(/\s/g, "");
+    if (data.gstEnabled && isValidGstin(gstin)) {
+      if (data.registeredGstin === gstin) {
+        setGstCheck({ gstin, status: "registered" });
+      } else {
+        confirmSavedGstin(gstin);
+      }
+    } else {
+      setGstCheck({ gstin: "", status: "" });
+    }
   };
 
   const duplicateInvoice = (rec) => {
     if (!confirmDiscard()) return;
+    gstLookup.current += 1;
+    setGstCheck({ gstin: "", status: "" });
     const data = normalizeInvoice(rec.data);
     const latestBusiness = businesses.find((x) => x.id === data.business.id);
     const latestClient = clients.find((x) => x.id === data.client.id);
     const next = {
       ...data,
       id: uid(),
-      number: nextInvoiceNumber(lastNumber),
+      number: data.gstEnabled ? "" : nextInvoiceNumber(lastNumber),
+      numberIssued: false,
+      registeredGstin: "",
       copyLabel: COPY_LABELS[0],
       date: todayISO(),
       vehicleNo: "",
@@ -687,7 +856,9 @@ export default function InvoiceApp() {
     savedSnapshot.current = "";
     setInv(next);
     setHistoryOpen(false);
-    notify(`Copied as new invoice ${next.number}.`);
+    const gstin = (next.business?.gstin || "").toUpperCase().replace(/\s/g, "");
+    if (next.gstEnabled && isValidGstin(gstin)) confirmSavedGstin(gstin);
+    notify(next.number ? `Copied as new invoice ${next.number}.` : "Copied as a new invoice. Generate an invoice number when you are ready.");
   };
 
   const deleteInvoice = (rec) => {
@@ -714,7 +885,15 @@ export default function InvoiceApp() {
     b.pan && `PAN: ${b.pan}`,
     b.email && `Email: ${b.email}`,
   ].filter(Boolean);
-  const bizGstinInvalid = gst && b.gstin && !isValidGstin(b.gstin);
+  const bizGstinInvalid = gst && b.gstin.length === 15 && !isValidGstin(b.gstin);
+  const gstLinked = Boolean(gst && inv.registeredGstin && inv.registeredGstin === b.gstin);
+  const gstinMark = gstCheck.status === "checking" && gstCheck.gstin === b.gstin
+    ? "checking"
+    : gstLinked
+      ? "registered"
+      : gstCheck.status === "missing" && gstCheck.gstin === b.gstin
+        ? "missing"
+        : "";
 
   const itemRow = (it, i) => {
     const l = calc.lines[i];
@@ -827,10 +1006,10 @@ export default function InvoiceApp() {
       <header className="toolbar screen-only">
         <div className="brand">GST Bill Generator</div>
         <div className="seg" role="group" aria-label="Bill type">
-          <button type="button" className={gst ? "active" : ""} onClick={() => update({ gstEnabled: true })}>
+          <button type="button" className={gst ? "active" : ""} onClick={() => setBillType(true)}>
             GST Bill
           </button>
-          <button type="button" className={!gst ? "active" : ""} onClick={() => update({ gstEnabled: false })}>
+          <button type="button" className={!gst ? "active" : ""} onClick={() => setBillType(false)}>
             Non-GST Bill
           </button>
         </div>
@@ -883,16 +1062,15 @@ export default function InvoiceApp() {
                     <div className="inv-head-bar">
                       <div className="head-gstin">
                         {gst ? (
-                          <>
-                            <span className={b.gstin ? "" : "screen-only"}>GSTIN :</span>
-                            <Field
-                              value={b.gstin}
-                              onChange={(v) => setBiz("gstin", v)}
-                              placeholder="GSTIN (optional)"
-                              maxLength={15}
-                              className={bizGstinInvalid ? "invalid" : ""}
-                            />
-                          </>
+                          <GstinSearch
+                            value={b.gstin}
+                            businessName={b.name}
+                            locked={inv.numberIssued}
+                            invalid={bizGstinInvalid}
+                            status={gstinMark}
+                            onChange={editGstin}
+                            onSelect={selectRegistered}
+                          />
                         ) : null}
                       </div>
                       <div className="doc-tab">
@@ -1050,13 +1228,43 @@ export default function InvoiceApp() {
                     />
                     <div className="box rounded meta-box">
                       <DetailRow label="Invoice No.">
-                        <Field
-                          value={inv.number}
-                          onChange={(v) => update({ number: v })}
-                          placeholder="INV-0001"
-                          className="inv-no"
-                          printClassName="inv-no"
-                        />
+                        {gst ? (
+                          <div className="inv-no-line">
+                            <input
+                              className="field inv-no screen-only"
+                              value={inv.number}
+                              readOnly
+                              placeholder="Not generated"
+                              aria-label="Invoice number"
+                            />
+                            {inv.number ? <span className="print-only inv-no">{inv.number}</span> : null}
+                            {inv.numberIssued ? null : (
+                              <button
+                                type="button"
+                                className="generate-btn screen-only"
+                                onClick={generateNumber}
+                                disabled={issuing || !gstLinked || !inv.date}
+                              >
+                                {issuing ? "Generating…" : "Generate invoice number"}
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          <Field
+                            value={inv.number}
+                            onChange={(v) => update({ number: v })}
+                            placeholder="INV-0001"
+                            className="inv-no"
+                            printClassName="inv-no"
+                          />
+                        )}
+                        {gst && !inv.numberIssued ? (
+                          <div className="hint screen-only">
+                            {gstLinked
+                              ? "Uses this invoice date. The same month continues 0002. A new month starts at 0001."
+                              : "Select a registered GSTIN, or use New to register one."}
+                          </div>
+                        ) : null}
                       </DetailRow>
                       <DetailRow label="Date">
                         <DateField value={inv.date} onChange={(v) => update({ date: v })} />

@@ -91,7 +91,10 @@ button {
 .preview-bar > button,
 .profile-bar button,
 .history .actions button,
-.image-actions button {
+.image-actions button,
+.gstin-search > button,
+.generate-btn,
+.register-actions button {
   border: 1px solid #d1d5db;
   background: #fff;
   color: var(--ink);
@@ -104,12 +107,16 @@ button {
 .toolbar-main > button:hover,
 .preview-bar > button:hover,
 .profile-bar button:hover,
-.history .actions button:hover {
+.history .actions button:hover,
+.gstin-search > button:hover,
+.generate-btn:hover,
+.register-actions button:hover {
   background: #f3f4f6;
 }
 
 .toolbar-main > button.primary,
-.preview-bar > button.primary {
+.preview-bar > button.primary,
+.register-actions button.primary {
   background: var(--accent);
   border-color: var(--accent);
   color: #fff;
@@ -118,7 +125,8 @@ button {
 }
 
 .toolbar-main > button.primary:hover,
-.preview-bar > button.primary:hover {
+.preview-bar > button.primary:hover,
+.register-actions button.primary:hover {
   background: #1d4ed8;
 }
 
@@ -394,6 +402,151 @@ select:focus-visible {
   font-weight: 700;
 }
 
+.gstin-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.head-gstin .gstin-search .field {
+  width: auto;
+  flex: 1 1 150px;
+  min-width: 0;
+}
+
+.gstin-search > button,
+.generate-btn {
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+.gstin-mark {
+  min-width: 36px;
+  text-align: center;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.gstin-mark.ok {
+  color: var(--ok);
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+
+.gstin-mark.bad {
+  color: var(--danger);
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+.gstin-search > button.gstin-mark.ok:hover {
+  background: #f0fdf4;
+}
+
+.gstin-search > button.gstin-mark.bad:hover {
+  background: #fef2f2;
+}
+
+.gstin-mark.wait {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  min-height: 32px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.generate-btn:disabled,
+.gstin-search > button:disabled,
+.register-actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.gstin-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 30;
+  width: 320px;
+  max-width: min(320px, 80vw);
+  max-height: 280px;
+  overflow: auto;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.14);
+  padding: 4px;
+}
+
+.gstin-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  min-height: 44px;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font: inherit;
+  color: inherit;
+}
+
+.gstin-option:hover,
+.gstin-option.active {
+  background: var(--accent-soft);
+}
+
+.gstin-code {
+  font-weight: 700;
+}
+
+.gstin-name,
+.gstin-empty {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.gstin-empty {
+  padding: 8px 10px;
+  line-height: 1.4;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.inv-no-line {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.inv-no-line .field {
+  width: 100%;
+  min-width: 0;
+}
+
+.inv-no-line .generate-btn {
+  max-width: 100%;
+  white-space: normal;
+  line-height: 1.3;
+  text-align: left;
+}
+
+.inv-no-line .field[readonly] {
+  cursor: default;
+}
+
 .head-phone .field {
   width: 140px;
   font-weight: 700;
@@ -575,6 +728,10 @@ select:focus-visible {
 .inv-no {
   font-size: 20px;
   font-weight: 800;
+}
+
+.meta-box .field.inv-no {
+  font-size: 15px;
 }
 
 .meta-box .detail-row:first-child .detail-label,
@@ -875,6 +1032,11 @@ select:focus-visible {
   color: var(--muted);
 }
 
+.bank-edit label > span {
+  font-weight: 700;
+  color: var(--ink);
+}
+
 .bank-body {
   display: flex;
   gap: 20px;
@@ -883,14 +1045,15 @@ select:focus-visible {
 
 .bank-print th {
   text-align: left;
-  font-weight: 600;
-  color: var(--muted);
+  font-weight: 700;
+  color: var(--ink);
   padding: 2px 14px 2px 0;
   white-space: nowrap;
 }
 
 .bank-print td {
   padding: 2px 0;
+  font-weight: 400;
 }
 
 .qr {
@@ -1030,6 +1193,58 @@ select:focus-visible {
   padding: 32px 20px;
   text-align: center;
   color: var(--muted);
+}
+
+.modal.register-modal {
+  width: min(440px, 100%);
+}
+
+.register-modal .modal-head .icon-btn {
+  margin-left: auto;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 20px 20px;
+}
+
+.register-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.register-form input {
+  font: inherit;
+  font-size: 16px;
+  font-weight: 400;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  min-height: 44px;
+}
+
+.register-form input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-color: var(--accent);
+}
+
+.register-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.register-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .history-scroll {
@@ -1351,7 +1566,7 @@ select:focus-visible {
   }
 
   .responsive .paper .field.inv-no {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   .responsive .paper .copy-label .field {
@@ -1465,6 +1680,15 @@ select:focus-visible {
     flex: 1;
     width: auto;
     min-width: 0;
+  }
+
+  .responsive .gstin-search {
+    flex-wrap: wrap;
+  }
+
+  .responsive .gstin-search > button,
+  .responsive .generate-btn {
+    min-height: 44px;
   }
 
   .responsive .head-hint {

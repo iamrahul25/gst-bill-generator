@@ -138,7 +138,7 @@ export function deleteClient(list, id) {
   return next;
 }
 
-export function saveInvoiceRecord(list, inv, total) {
+export function saveInvoiceRecord(list, inv, total, { trackNumber = true } = {}) {
   const record = {
     id: inv.id,
     number: inv.number,
@@ -154,7 +154,7 @@ export function saveInvoiceRecord(list, inv, total) {
   const images = read(KEYS.images, {});
   write(KEYS.invoices, next.map((r) => ({ ...r, data: packInvoice(r.data, images) })));
   write(KEYS.images, collectGarbage(images));
-  if (isNew) write(KEYS.lastNumber, inv.number);
+  if (isNew && trackNumber && inv.number) write(KEYS.lastNumber, inv.number);
   return next;
 }
 

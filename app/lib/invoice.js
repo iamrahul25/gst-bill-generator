@@ -113,7 +113,7 @@ export const emptyBusiness = () => ({
   upiId: "",
   signature: "",
   stamp: "",
-  terms: DEFAULT_TERMS,
+  terms: "",
 });
 
 export const emptyClient = () => ({
@@ -150,7 +150,9 @@ export function nextInvoiceNumber(last) {
 export const newInvoice = ({ business, lastNumber, gstEnabled = true } = {}) => ({
   id: uid(),
   gstEnabled,
-  number: nextInvoiceNumber(lastNumber),
+  number: gstEnabled ? "" : nextInvoiceNumber(lastNumber),
+  numberIssued: false,
+  registeredGstin: "",
   copyLabel: COPY_LABELS[0],
   date: todayISO(),
   vehicleNo: "",
@@ -178,6 +180,8 @@ export function normalizeInvoice(inv) {
   return {
     ...newInvoice(),
     ...rest,
+    numberIssued: Boolean(inv.numberIssued),
+    registeredGstin: inv.registeredGstin || "",
     business: { ...emptyBusiness(), ...(terms !== undefined && { terms }), ...inv.business },
     client: { ...emptyClient(), ...inv.client },
     items: items.map(({ discount, ...it }) => ({ ...emptyItem(), ...it })),
