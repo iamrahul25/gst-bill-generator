@@ -1189,7 +1189,7 @@ select:focus-visible {
   border-radius: 6px;
 }
 
-.modal .empty {
+.modal p.empty {
   padding: 32px 20px;
   text-align: center;
   color: var(--muted);

@@ -128,6 +128,7 @@ export default function EditBill({ id }) {
         printLayout={null}
         qr={qr}
         lockDate
+        bankEditable
         errors={errorKeys}
         bizPicker={
           <div className="picker-bar locked-bar screen-only">

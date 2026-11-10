@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { DEFAULT_TERMS, emptyProfile, isValidGstin, panFromGstin, stateFromGstin, todayISO, uid } from "../lib/invoice";
+import { DEFAULT_TERMS, emptyProfile, isValidGstin, stateFromGstin, todayISO, uid } from "../lib/invoice";
 import { businessPrefix } from "../lib/gstSeries";
 import { AutoTextarea, ImageUpload, StateSelect } from "./fields";
 import { Modal } from "./ui";
@@ -61,7 +61,6 @@ export default function BusinessForm({ profile, businesses, onSaved, onClose }) 
         next.gstin = clean;
         const st = stateFromGstin(clean);
         if (st && (!prev.state || prev.state === stateFromGstin(prev.gstin))) next.state = st;
-        if (!prev.pan || prev.pan === panFromGstin(prev.gstin)) next.pan = panFromGstin(clean);
       }
       return next;
     });

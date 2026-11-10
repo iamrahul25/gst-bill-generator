@@ -173,6 +173,7 @@ export default function InvoiceSheet({
   printLayout,
   qr,
   bizEditable = false,
+  bankEditable = bizEditable,
   bizPicker = null,
   clientPicker = null,
   readOnly = false,
@@ -244,7 +245,7 @@ export default function InvoiceSheet({
     b.pan && `PAN: ${b.pan}`,
     b.email && `Email: ${b.email}`,
   ].filter(Boolean);
-  const showBank = bizEditable || hasBank || (qr && inv.showQr);
+  const showBank = bankEditable || hasBank || (qr && inv.showQr);
 
   const itemRow = (it, i) => {
     const l = calc.lines[i];
@@ -630,7 +631,7 @@ export default function InvoiceSheet({
                       {showBank ? (
                         <div className={`bank ${hasBank ? "" : "screen-only"}`}>
                           <div className="label">Payment Details</div>
-                          {bizEditable ? (
+                          {bankEditable ? (
                             <div className="bank-edit screen-only">
                               {BANK_FIELDS.map(([key, label]) => (
                                 <label key={key}>
@@ -642,11 +643,15 @@ export default function InvoiceSheet({
                                   />
                                 </label>
                               ))}
-                              <div className="hint">Saved with your business profile.</div>
+                              <div className="hint">
+                                {bizEditable
+                                  ? "Saved with your business profile."
+                                  : "Changes apply to this bill only; the business profile stays the same."}
+                              </div>
                             </div>
                           ) : null}
                           <div className="bank-body">
-                            <table className={`bank-print ${bizEditable ? "print-only" : ""}`}>
+                            <table className={`bank-print ${bankEditable ? "print-only" : ""}`}>
                               <tbody>
                                 {BANK_FIELDS.filter(([k]) => b[k]?.trim()).map(([key, label]) => (
                                   <tr key={key}>
