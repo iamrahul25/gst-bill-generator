@@ -1,4 +1,4 @@
-// Initials are the first letter or digit of each word: "Shri Shayam Plywood" → SSP.
+// Initials are the first letter or digit of each word: "Shri Prabhu Ply" → SPP.
 export function businessPrefix(name) {
   return String(name)
     .trim()
@@ -11,7 +11,7 @@ export function businessPrefix(name) {
 }
 
 // The invoice date is a calendar day chosen on the bill. Year and month come
-// from that day, so the series is SSP/26/11/0001 for 9 Nov 2026.
+// from that day, so the series is SPP/2026/11/0001 for 9 Nov 2026.
 export function seriesPeriod(isoDate) {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate || "");
   if (!match) return null;
@@ -22,5 +22,5 @@ export function seriesPeriod(isoDate) {
   if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) {
     return null;
   }
-  return { year: year % 100, month };
+  return { year, month };
 }

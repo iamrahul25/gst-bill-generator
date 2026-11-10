@@ -7,7 +7,9 @@ function json(data, status = 200) {
 }
 
 function fail(error) {
-  if (error instanceof HttpError) return json({ error: error.message }, error.status);
+  if (error instanceof HttpError) {
+    return json({ error: error.message, ...(error.business && { business: error.business }) }, error.status);
+  }
   console.error(error);
   const message = error?.d1
     ? "Could not use the GST register. Check the Cloudflare D1 settings in .env."
@@ -90,7 +92,7 @@ async function registerBusiness(body) {
   }
 
   const existing = await d1("SELECT gstin, name FROM businesses WHERE gstin = ?", [gstin]);
-  if (existing[0]) return { business: existing[0], already: true };
+  if (existing[0]) return alreadyRegistered(existing[0]);
 
   try {
     await d1("INSERT INTO businesses (gstin, name, prefix, created_at) VALUES (?, ?, ?, ?)", [
@@ -101,11 +103,17 @@ async function registerBusiness(body) {
     ]);
   } catch (error) {
     const raced = await d1("SELECT gstin, name FROM businesses WHERE gstin = ?", [gstin]);
-    if (raced[0]) return { business: raced[0], already: true };
+    if (raced[0]) return alreadyRegistered(raced[0]);
     throw error;
   }
 
-  return { business: { gstin, name }, already: false };
+  return { business: { gstin, name } };
+}
+
+function alreadyRegistered(business) {
+  const error = new HttpError(409, `This GST number is already stored with ${business.name}.`);
+  error.business = business;
+  throw error;
 }
 
 async function generateNumber(body) {
@@ -131,6 +139,8 @@ async function generateNumber(body) {
 
 // One statement takes the next sequence for this GSTIN and month. The same
 // bill id returns the number already issued, so a second click does not advance it.
+// Numbers issued before the four-digit year were stored with a two-digit year
+// (26 for 2026); the month's count continues from those.
 async function issueNumber({ invoiceId, gstin, year, month, prefix }) {
   const sql = `INSERT INTO invoice_numbers (invoice_id, gstin, year, month, seq, number, created_at)
     SELECT
@@ -138,9 +148,9 @@ async function issueNumber({ invoiceId, gstin, year, month, prefix }) {
       ?2,
       ?3,
       ?4,
-      COALESCE((SELECT MAX(seq) FROM invoice_numbers WHERE gstin = ?2 AND year = ?3 AND month = ?4), 0) + 1,
-      ?5 || '/' || printf('%02d', ?3) || '/' || printf('%02d', ?4) || '/' || printf('%04d',
-        COALESCE((SELECT MAX(seq) FROM invoice_numbers WHERE gstin = ?2 AND year = ?3 AND month = ?4), 0) + 1),
+      COALESCE((SELECT MAX(seq) FROM invoice_numbers WHERE gstin = ?2 AND year IN (?3, ?3 % 100) AND month = ?4), 0) + 1,
+      ?5 || '/' || printf('%04d', ?3) || '/' || printf('%02d', ?4) || '/' || printf('%04d',
+        COALESCE((SELECT MAX(seq) FROM invoice_numbers WHERE gstin = ?2 AND year IN (?3, ?3 % 100) AND month = ?4), 0) + 1),
       ?6
     WHERE NOT EXISTS (SELECT 1 FROM invoice_numbers WHERE invoice_id = ?1)
     RETURNING number`;

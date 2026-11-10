@@ -59,14 +59,15 @@ export function TextArea({ printClassName = "", ...props }) {
   );
 }
 
-export function DateField({ value, onChange, min }) {
+export function DateField({ value, onChange, min, disabled, className = "" }) {
   return (
     <>
       <input
         type="date"
-        className="field screen-only"
+        className={`field screen-only ${className}`}
         value={value || ""}
         min={min}
+        disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
       />
       {value ? <span className="print-only">{formatDate(value)}</span> : null}

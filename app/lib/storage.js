@@ -5,6 +5,12 @@ const KEYS = {
   images: "gstbill.images",
   draft: "gstbill.draft",
   lastNumber: "gstbill.lastInvoiceNumber",
+  mode: "gstbill.mode",
+  gstBusinesses: "gstbill.gstBusinesses",
+  gstBills: "gstbill.gstBills",
+  gstDraft: "gstbill.gstDraft",
+  migrated: "gstbill.migratedBills",
+  linked: "gstbill.linkedBusinesses",
 };
 
 const IMAGE_FIELDS = ["logo", "signature", "stamp"];
@@ -73,6 +79,9 @@ function collectGarbage(images) {
   read(KEYS.businesses, []).forEach(mark);
   read(KEYS.invoices, []).forEach((r) => mark(r.data.business));
   mark(read(KEYS.draft, null)?.business);
+  read(KEYS.gstBusinesses, []).forEach(mark);
+  read(KEYS.gstBills, []).forEach((r) => mark(r.data.business));
+  mark(read(KEYS.gstDraft, null)?.inv?.business);
   for (const id of Object.keys(images)) if (!used.has(id)) delete images[id];
   return images;
 }
@@ -165,3 +174,84 @@ export function deleteInvoiceRecord(list, id) {
   write(KEYS.images, collectGarbage(images));
   return next;
 }
+
+// ---------- GST bills ----------
+
+export const loadMode = () => (read(KEYS.mode, "gst") === "nongst" ? "nongst" : "gst");
+export const saveMode = (mode) => write(KEYS.mode, mode);
+
+// GST invoices saved by the earlier version (with an issued number) become
+// unfinished bills. Their images are already packed, so data moves as is.
+function migrateBills() {
+  if (read(KEYS.migrated, false)) return;
+  const invoices = read(KEYS.invoices, []);
+  const move = invoices.filter(
+    (r) => (r.gstEnabled ?? r.data?.gstEnabled) && r.number && r.data?.numberIssued !== false
+  );
+  if (move.length) {
+    const bills = read(KEYS.gstBills, []);
+    const have = new Set(bills.map((b) => b.id));
+    const added = move
+      .filter((r) => !have.has(r.id))
+      .map((r) => ({
+        id: r.id,
+        number: r.number,
+        status: "unfinished",
+        createdAt: r.savedAt || Date.now(),
+        savedAt: r.savedAt || Date.now(),
+        total: r.total,
+        data: { ...r.data, gstEnabled: true, numberIssued: true },
+      }));
+    write(KEYS.gstBills, [...added, ...bills]);
+    const ids = new Set(move.map((r) => r.id));
+    write(KEYS.invoices, invoices.filter((r) => !ids.has(r.id)));
+  }
+  write(KEYS.migrated, true);
+}
+
+export function loadGst() {
+  try {
+    migrateBills();
+  } catch {
+    // Storage full: the old invoices stay where they are and migrate next time.
+  }
+  const images = read(KEYS.images, {});
+  const draft = read(KEYS.gstDraft, null);
+  return {
+    businesses: read(KEYS.gstBusinesses, []).map((b) => unpackBusiness(b, images)),
+    clients: read(KEYS.clients, []),
+    bills: read(KEYS.gstBills, []).map((r) => ({ ...r, data: unpackInvoice(r.data, images) })),
+    draft: draft?.inv ? { ...draft, inv: unpackInvoice(draft.inv, images) } : null,
+  };
+}
+
+export function saveGstBusinesses(list) {
+  saveProfiles(KEYS.gstBusinesses, list, packBusiness);
+}
+
+export function saveGstBills(list) {
+  const images = read(KEYS.images, {});
+  write(KEYS.gstBills, list.map((r) => ({ ...r, data: packInvoice(r.data, images) })));
+  write(KEYS.images, collectGarbage(images));
+}
+
+export function saveGstDraft(draft) {
+  const images = read(KEYS.images, {});
+  const packed = { ...draft, inv: packInvoice(draft.inv, images) };
+  write(KEYS.images, images);
+  write(KEYS.gstDraft, packed);
+}
+
+export const saveClients = (list) => write(KEYS.clients, list);
+
+// Businesses from the earlier version that had a GSTIN; the GST page links
+// the ones found in the GST register, once.
+export function legacyGstBusinesses() {
+  if (read(KEYS.linked, false)) return [];
+  const images = read(KEYS.images, {});
+  return read(KEYS.businesses, [])
+    .filter((b) => b.gstin)
+    .map((b) => unpackBusiness(b, images));
+}
+
+export const markLegacyLinked = () => write(KEYS.linked, true);

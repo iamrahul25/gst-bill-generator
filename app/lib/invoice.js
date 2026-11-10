@@ -167,6 +167,82 @@ export const newInvoice = ({ business, lastNumber, gstEnabled = true } = {}) => 
   showQr: true,
 });
 
+// A registered GST business keeps several phones and emails; a bill stores a
+// snapshot with them joined, in the same shape as a Non-GST business.
+export const emptyProfile = () => {
+  const { phone, email, ...rest } = emptyBusiness();
+  return { ...rest, phones: [""], emails: [""] };
+};
+
+const cleanList = (list) => (list || []).map((v) => String(v).trim()).filter(Boolean);
+
+export function profileFromBusiness(business) {
+  const { phone, email, ...rest } = { ...emptyBusiness(), ...business };
+  const split = (v) => cleanList(String(v || "").split(","));
+  return {
+    ...emptyProfile(),
+    ...rest,
+    phones: business.phones ? cleanList(business.phones) : split(phone),
+    emails: business.emails ? cleanList(business.emails) : split(email),
+  };
+}
+
+export function bizSnapshot(profile) {
+  const { phones, emails, ...rest } = profile;
+  return {
+    ...emptyBusiness(),
+    ...rest,
+    phone: cleanList(phones).join(", "),
+    email: cleanList(emails).join(", "),
+  };
+}
+
+export const newGstBill = (profile) => ({
+  ...newInvoice({ gstEnabled: true }),
+  date: "",
+  business: profile ? bizSnapshot(profile) : emptyBusiness(),
+});
+
+export const isBlankItem = (it) => !it.description.trim() && !num(it.rate);
+
+// Keys match the fields the bill sheet highlights.
+export function gstBillErrors(inv) {
+  const errors = [];
+  if (!inv.business.gstin || !inv.business.name) errors.push(["business", "Select a business"]);
+  if (!inv.date) errors.push(["date", "Invoice date"]);
+  if (!inv.client.name.trim()) errors.push(["client.name", "Customer name"]);
+  if (!inv.client.phone.trim()) errors.push(["client.phone", "Customer phone number"]);
+  const filled = inv.items.filter((it) => !isBlankItem(it));
+  if (!filled.length) errors.push(["items", "At least one item"]);
+  inv.items.forEach((it, i) => {
+    if (isBlankItem(it)) return;
+    if (!it.description.trim()) errors.push([`item.${it.id}`, `Item ${i + 1}: product name`]);
+    if (!(num(it.qty) > 0)) errors.push([`item.${it.id}`, `Item ${i + 1}: quantity`]);
+    if (!(num(it.rate) > 0)) errors.push([`item.${it.id}`, `Item ${i + 1}: unit price`]);
+  });
+  return errors;
+}
+
+export const BILL_STATUS = {
+  unfinished: "Unfinished",
+  finished: "Finished",
+  cancelled: "Cancelled",
+};
+
+export const CANCEL_REASONS = ["Data Entry Mistake", "Order Cancelled by Buyer", "Duplicate Entry", "Other"];
+
+const istFmt = new Intl.DateTimeFormat("en-IN", {
+  timeZone: "Asia/Kolkata",
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+  hour12: true,
+});
+
+export const formatIST = (iso) => (iso ? `${istFmt.format(new Date(iso))} IST` : "");
+
 // Invoices saved before the current layout had per-item discount %, notes and
 // PO / due date / e-way bill / place-of-supply fields. Their item discounts are
 // folded into the invoice-level discount amount; the other fields are dropped.
